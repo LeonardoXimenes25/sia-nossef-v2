@@ -18,7 +18,7 @@ class SubjectResource extends Resource
 {
     protected static ?string $model = Subject::class;
 
-    protected static ?string $navigationLabel = 'Materia Estudu';
+    protected static ?string $navigationLabel = 'Disiplina';
     protected static ?string $navigationIcon = 'heroicon-o-book-open';
     protected static ?string $navigationGroup = 'Managementu Akademiku';
 
@@ -30,7 +30,7 @@ class SubjectResource extends Resource
 
                 // Nama Mata Pelajaran
                 TextInput::make('name')
-                    ->label('Naran Materia')
+                    ->label('Naran Disiplina')
                     ->required(),
 
                 // Pilih Jurusan (many-to-many)
@@ -48,7 +48,7 @@ class SubjectResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')->label('Nu. '),
-                TextColumn::make('name')->label('Naran Materia'),
+                TextColumn::make('name')->label('Naran Disiplina'),
                 TextColumn::make('majors')
                     ->label('Area Estudu')
                     ->getStateUsing(fn($record) => $record->majors->pluck('name')->join(', ')),

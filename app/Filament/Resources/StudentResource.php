@@ -96,19 +96,11 @@ class StudentResource extends Resource
                 Tables\Columns\TextColumn::make('classRoom.turma')->label('Turma'),
                 Tables\Columns\TextColumn::make('major.code')
                     ->label('Area Estudu')
-                    ->extraAttributes(function ($state) {
-                        $colors = [
-                            'text-red-600',
-                            'text-blue-600',
-                            'text-green-600',
-                            'text-yellow-600',
-                            'text-purple-600',
-                            'text-pink-600',
-                        ];
-
-                        $index = crc32($state) % count($colors);
-
-                        return ['class' => $colors[$index] . ' font-bold'];
+                    ->badge()
+                    ->color(fn ($record) => match ($record->major->code) {
+                        'CT' => 'success',
+                        'CSH' => 'primary',
+                        default => 'secondary',
                     }),
                 Tables\Columns\TextColumn::make('admission_year')->label('Tinan Entrada'),
                 Tables\Columns\TextColumn::make('status_text')->label('Status'),

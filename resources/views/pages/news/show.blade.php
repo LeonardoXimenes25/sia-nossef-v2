@@ -84,7 +84,7 @@
                     <div class="share-section mb-5 p-4 bg-light rounded-3">
                         <h6 class="mb-3">Bagikan berita ini:</h6>
                         <div class="d-flex gap-2 flex-wrap">
-                            <a href="#" class="btn btn-sm btn-primary d-flex align-items-center">
+                            <a href="" class="btn btn-sm btn-primary d-flex align-items-center">
                                 <i class="fab fa-facebook-f me-2"></i> Facebook
                             </a>
                             <a href="#" class="btn btn-sm btn-info d-flex align-items-center text-white">

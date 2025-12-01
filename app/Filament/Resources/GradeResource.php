@@ -9,6 +9,10 @@ use App\Models\Student;
 use App\Models\SubjectAssignment;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Hidden;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -22,9 +26,14 @@ class GradeResource extends Resource
     protected static ?string $navigationLabel = 'Valor';
     protected static ?string $pluralModelLabel = 'Valor';
 
-    // Method untuk generate remarks berdasarkan score
+    // Generate remarks berdasarkan score
     public static function getRemarksByScore($score): string
     {
+        if ($score === null || $score === '') {
+            return 'Não Avaliado';
+        }
+        
+        $score = (float) $score;
         return match(true) {
             $score >= 9.5 => 'Excelente',
             $score >= 8.5 => 'Muito Bom',
@@ -42,359 +51,247 @@ class GradeResource extends Resource
         return $form
             ->schema([
                 // Pilih Kelas / Turma
-                Forms\Components\Select::make('class_room_id')
+                Select::make('class_room_id')
                     ->label('Klasse / Turma')
                     ->options(function () {
-                        return ClassRoom::with('major')->get()->mapWithKeys(function ($classRoom) {
-                            return [
-                                $classRoom->id => $classRoom->level . ' ' . $classRoom->turma . ' (' . $classRoom->major->name . ')',
-                            ];
-                        });
+                        return ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[
+                            $c->id => $c->level.' '.$c->turma.' ('.$c->major->name.')'
+                        ]);
                     })
                     ->live()
                     ->required()
                     ->afterStateUpdated(function ($state, Forms\Set $set) {
+                        if (!$state) {
+                            $set('students', []);
+                            return;
+                        }
+                        
                         $students = Student::where('class_room_id', $state)
                             ->orderBy('name')
-                            ->get(['id', 'name', 'nre'])
-                            ->map(function ($student) {
-                                return [
-                                    'id' => $student->id,
-                                    'nre' => $student->nre,
-                                    'name' => $student->name,
-                                    'score' => 0,
-                                    'remarks' => 'Não Avaliado',
-                                ];
-                            })
+                            ->get(['id','name','nre'])
+                            ->map(fn($s)=>[
+                                'id' => $s->id,
+                                'nre' => $s->nre,
+                                'name' => $s->name,
+                                'score' => '',
+                                'remarks' => 'Não Avaliado',
+                            ])
                             ->toArray();
-
                         $set('students', $students);
                     }),
 
                 // Pilih Subject Assignment (Guru + Mata Pelajaran)
-                Forms\Components\Select::make('subject_assignment_id')
+                Select::make('subject_assignment_id')
                     ->label('Professor / Materia')
                     ->options(function () {
-                        return SubjectAssignment::with(['teacher', 'subject'])
+                        return SubjectAssignment::with(['teacher','subject'])
                             ->get()
-                            ->mapWithKeys(fn($assignment) => [
-                                $assignment->id => $assignment->teacher->name . ' - ' . $assignment->subject->name,
-                            ]);
+                            ->mapWithKeys(fn($s)=>[$s->id=>$s->teacher->name.' - '.$s->subject->name]);
                     })
                     ->searchable()
                     ->required(),
 
                 // Tahun Akademik
-                Forms\Components\Select::make('academic_year_id')
+                Select::make('academic_year_id')
                     ->label('Tinan Akademiku')
-                    ->relationship('academicYear', 'name')
+                    ->relationship('academicYear','name')
                     ->required(),
 
                 // Periode
-                Forms\Components\Select::make('period_id')
+                Select::make('period_id')
                     ->label('Periodu')
-                    ->relationship('period', 'name')
+                    ->relationship('period','name')
                     ->required(),
 
-                // Repeater untuk students dengan nilai
-                Forms\Components\Repeater::make('students')
+                // Tabel siswa dengan tampilan spreadsheet
+                Forms\Components\Section::make('Tabel Estudante sira')
                     ->schema([
-                        Forms\Components\Grid::make()
+                        // Header tabel menggunakan Placeholder dengan HTML
+                        Forms\Components\Placeholder::make('table_header')
+                            ->content(view('filament.components.grade-table-header'))
+                            ->extraAttributes(['class' => 'p-0']),
+                        
+                        // Atau alternatif: Header menggunakan Grid dengan TextInput yang disabled
+                        Grid::make(5)
                             ->schema([
-                                // NRE
-                                Forms\Components\TextInput::make('nre')
+                                TextInput::make('header_nre')
                                     ->label('NRE')
                                     ->disabled()
                                     ->dehydrated(false)
-                                    ->columnSpan(1),
-                                
-                                // Nama Siswa
-                                Forms\Components\TextInput::make('name')
+                                    ->extraAttributes(['class' => 'font-bold bg-gray-100 border-0'])
+                                    ->default('NRE'),
+                                TextInput::make('header_name')
                                     ->label('Naran Estudante')
                                     ->disabled()
                                     ->dehydrated(false)
-                                    ->columnSpan(2),
-                                
-                                // Nilai
-                                Forms\Components\TextInput::make('score')
+                                    ->extraAttributes(['class' => 'font-bold bg-gray-100 border-0'])
+                                    ->default('Naran Estudante'),
+                                TextInput::make('header_score')
                                     ->label('Valor')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(10)
-                                    ->step(0.1)
-                                    ->required()
-                                    ->columnSpan(1)
-                                    ->suffix('/10')
-                                    ->reactive()
-                                    ->afterStateUpdated(function ($state, Forms\Set $set, $context) {
-                                        // Auto-generate remarks berdasarkan score
-                                        if ($state !== null && $state !== '') {
-                                            $remarks = self::getRemarksByScore((float)$state);
-                                            $set('remarks', $remarks);
-                                        }
-                                    }),
-                                
-                                // Remarks - Auto-generated
-                                Forms\Components\TextInput::make('remarks')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->extraAttributes(['class' => 'font-bold bg-gray-100 border-0'])
+                                    ->default('Valor'),
+                                TextInput::make('header_remarks')
                                     ->label('Observasaun')
                                     ->disabled()
-                                    ->dehydrated()
-                                    ->columnSpan(2)
-                                    ->default('Não Avaliado'),
-                                
-                                // Hidden ID
-                                Forms\Components\Hidden::make('id')
-                                    ->required(),
+                                    ->dehydrated(false)
+                                    ->extraAttributes(['class' => 'font-bold bg-gray-100 border-0'])
+                                    ->default('Observasaun'),
+                                TextInput::make('header_id')
+                                    ->label('ID')
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->extraAttributes(['class' => 'font-bold bg-gray-100 border-0'])
+                                    ->default('ID'),
                             ])
-                            ->columns(6)
+                            ->columns(5)
+                            ->extraAttributes(['class' => 'border-b-2 border-gray-300 pb-2 mb-2']),
+
+                        // Data siswa dalam repeater
+                        Forms\Components\Repeater::make('students')
+                            ->schema([
+                                Grid::make(5)
+                                    ->schema([
+                                        TextInput::make('nre')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->extraAttributes(['class' => 'bg-gray-50']),
+                                        TextInput::make('name')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->extraAttributes(['class' => 'bg-gray-50']),
+                                        TextInput::make('score')
+                                            ->numeric()
+                                            ->minValue(0)
+                                            ->maxValue(10)
+                                            ->step(0.1)
+                                            ->placeholder('0-10')
+                                            ->reactive()
+                                            ->afterStateUpdated(function ($state, Forms\Set $set, $get) {
+                                                $remarks = GradeResource::getRemarksByScore($state);
+                                                $set('remarks', $remarks);
+                                            }),
+                                        TextInput::make('remarks')
+                                            ->disabled()
+                                            ->dehydrated(false)
+                                            ->extraAttributes(['class' => 'bg-gray-50']),
+                                        Hidden::make('id')
+                                            ->required(),
+                                    ])
+                                    ->columns(5)
+                                    ->extraAttributes(['class' => 'border-b border-gray-200 py-2'])
+                            ])
+                            ->defaultItems(0)
+                            ->addable(false)
+                            ->deletable(false)
+                            ->reorderable(false)
+                            ->label(false)
+                            ->itemLabel(fn (array $state): ?string => $state['name'] ?? null)
+                            ->grid(1)
+                            ->columnSpanFull()
                     ])
-                    ->defaultItems(0)
-                    ->reorderable(false)
-                    ->deletable(false)
-                    ->addable(false)
-                    ->itemLabel(fn (array $state): ?string => 
-                        ($state['nre'] ?? '') . ' - ' . ($state['name'] ?? 'Naran la iha')
-                    )
-                    ->visible(fn (Forms\Get $get) => !empty($get('class_room_id')))
-                    ->label('Lista Estudante sira')
-                    ->columnSpan('full')
-                    ->extraAttributes(['class' => 'bg-gray-50 p-6 rounded-lg border border-gray-200']),
+                    ->collapsible()
             ]);
     }
 
-     public static function table(Table $table): Table
+    public static function table(Table $table): Table
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('student.nre')
-                    ->label('NRE')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('student.name')
-                    ->label('Estudante')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('classRoom.level')
-                    ->label('Kelas')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('classRoom.turma')
-                    ->label('Turma')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('subjectAssignment.subject.name')
-                    ->label('Materia')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('subjectAssignment.teacher.name')
-                    ->label('Professor')
-                    ->sortable()
-                    ->searchable()
-                    ->toggleable(),
-                
+                Tables\Columns\TextColumn::make('student.nre')->label('NRE')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('student.name')->label('Estudante')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('classRoom.level')->label('Kelas')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('classRoom.turma')->label('Turma')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('subjectAssignment.subject.name')->label('Materia')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('subjectAssignment.teacher.name')->label('Professor')->sortable()->searchable(),
                 Tables\Columns\TextColumn::make('score')
                     ->label('Valor')
                     ->sortable()
-                    ->formatStateUsing(fn($state) => number_format($state, 1))
-                    ->color(fn($state) => match(true) {
-                        $state >= 8.5 => 'success',
-                        $state >= 7.0 => 'warning',
-                        $state >= 6.0 => 'info',
-                        default => 'danger',
-                    })
-                    ->toggleable(),
-                
+                    ->formatStateUsing(fn($s)=> $s ? number_format($s, 1) : '-')
+                    ->color(fn($s)=> match(true){
+                        $s >= 8.5 => 'success',
+                        $s >= 7.0 => 'warning',
+                        $s >= 6.0 => 'info',
+                        $s > 0 => 'danger',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('remarks')
                     ->label('Observasaun')
-                    ->color(fn($state) => match($state) {
-                        'Excelente', 'Muito Bom' => 'success',
-                        'Bom' => 'warning',
-                        'Suficiente' => 'info',
-                        'Insuficiente', 'Mau', 'Muito Mau' => 'danger',
-                        default => 'gray',
+                    ->color(fn($r)=> match($r){
+                        'Excelente','Muito Bom'=>'success',
+                        'Bom'=>'warning',
+                        'Suficiente'=>'info',
+                        'Insuficiente','Mau','Muito Mau'=>'danger',
+                        default=>'gray',
                     })
-                    ->badge()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('academicYear.name')
-                    ->label('Tinan Akademiku')
-                    ->sortable()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('period.name')
-                    ->label('Periodu')
-                    ->sortable()
-                    ->toggleable(),
-                
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Data Kria')
-                    ->date('d M Y')
-                    ->sortable()
-                    ->toggleable(),
+                    ->badge(),
+                Tables\Columns\TextColumn::make('academicYear.name')->label('Tinan Akademiku')->sortable(),
+                Tables\Columns\TextColumn::make('period.name')->label('Periodu')->sortable(),
+                Tables\Columns\TextColumn::make('created_at')->label('Data Kria')->date('d M Y')->sortable(),
             ])
             ->filters([
-                // Filter berdasarkan Kelas
                 Tables\Filters\SelectFilter::make('class_room_id')
                     ->label('Klasse / Turma')
-                    ->options(
-                        ClassRoom::with(['major'])
-                            ->get()
-                            ->mapWithKeys(fn($class) => [
-                                $class->id => $class->level . ' ' . $class->turma . ' (' . $class->major->name . ')'
-                            ])
-                    )
+                    ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id=>$c->level.' '.$c->turma.' ('.$c->major->name.')']))
                     ->searchable()
                     ->multiple()
                     ->preload(),
 
-                // Filter berdasarkan Mata Pelajaran
                 Tables\Filters\SelectFilter::make('subject_assignment_id')
                     ->label('Materia')
-                    ->options(
-                        SubjectAssignment::with(['subject'])
-                            ->get()
-                            ->mapWithKeys(fn($assignment) => [
-                                $assignment->id => $assignment->subject->name
-                            ])
-                    )
+                    ->options(SubjectAssignment::with('subject')->get()->mapWithKeys(fn($s)=>[$s->id=>$s->subject->name]))
                     ->searchable()
                     ->multiple()
                     ->preload(),
 
-                // Filter berdasarkan Guru
                 Tables\Filters\SelectFilter::make('teacher')
                     ->label('Professor')
-                    ->relationship('subjectAssignment.teacher', 'name')
+                    ->relationship('subjectAssignment.teacher','name')
                     ->searchable()
                     ->multiple()
                     ->preload(),
 
-                // Filter berdasarkan Tahun Akademik
                 Tables\Filters\SelectFilter::make('academic_year_id')
                     ->label('Tinan Akademiku')
-                    ->relationship('academicYear', 'name')
+                    ->relationship('academicYear','name')
                     ->searchable()
                     ->preload(),
 
-                // Filter berdasarkan Periode
                 Tables\Filters\SelectFilter::make('period_id')
                     ->label('Periodu')
-                    ->relationship('period', 'name')
+                    ->relationship('period','name')
                     ->searchable()
                     ->preload(),
 
-                // Filter berdasarkan Remarks
                 Tables\Filters\SelectFilter::make('remarks')
                     ->label('Observasaun')
                     ->options([
-                        'Excelente' => 'Excelente',
-                        'Muito Bom' => 'Muito Bom',
-                        'Bom' => 'Bom',
-                        'Suficiente' => 'Suficiente',
-                        'Insuficiente' => 'Insuficiente',
-                        'Mau' => 'Mau',
-                        'Muito Mau' => 'Muito Mau',
-                        'Não Avaliado' => 'Não Avaliado',
+                        'Excelente'=>'Excelente','Muito Bom'=>'Muito Bom','Bom'=>'Bom','Suficiente'=>'Suficiente',
+                        'Insuficiente'=>'Insuficiente','Mau'=>'Mau','Muito Mau'=>'Muito Mau','Não Avaliado'=>'Não Avaliado'
                     ])
                     ->searchable()
                     ->preload(),
-
-                // Filter berdasarkan Rentang Nilai
-                Tables\Filters\Filter::make('score_range')
-                    ->form([
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\TextInput::make('min_score')
-                                    ->label('Valor Minimu')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(10)
-                                    ->placeholder('0'),
-                                Forms\Components\TextInput::make('max_score')
-                                    ->label('Valor Máximu')
-                                    ->numeric()
-                                    ->minValue(0)
-                                    ->maxValue(10)
-                                    ->placeholder('10'),
-                            ]),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['min_score'] ?? null,
-                                fn (Builder $query, $score): Builder => $query->where('score', '>=', $score),
-                            )
-                            ->when(
-                                $data['max_score'] ?? null,
-                                fn (Builder $query, $score): Builder => $query->where('score', '<=', $score),
-                            );
-                    })
-                    ->indicateUsing(function (array $data): array {
-                        $indicators = [];
-                        if ($data['min_score'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('Min: ' . $data['min_score']);
-                        }
-                        if ($data['max_score'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('Max: ' . $data['max_score']);
-                        }
-                        return $indicators;
-                    }),
-
-                // Quick Filter - Nilai Baik
-                Tables\Filters\Filter::make('good_scores')
-                    ->label('Valor Diak')
-                    ->query(fn(Builder $query): Builder => $query->where('score', '>=', 7.0))
-                    ->toggle()
-                    ->default(false),
-
-                // Quick Filter - Nilai Cukup
-                Tables\Filters\Filter::make('average_scores')
-                    ->label('Valor Mediu')
-                    ->query(fn(Builder $query): Builder => $query->whereBetween('score', [5.0, 6.9]))
-                    ->toggle()
-                    ->default(false),
-
-                // Quick Filter - Nilai Rendah
-                Tables\Filters\Filter::make('poor_scores')
-                    ->label('Valor Kraik')
-                    ->query(fn(Builder $query): Builder => $query->where('score', '<', 5.0))
-                    ->toggle()
-                    ->default(false),
             ])
             ->filtersLayout(Tables\Enums\FiltersLayout::AboveContent)
-            ->filtersFormColumns(4) // Tambah jadi 4 kolom untuk lebih compact
+            ->filtersFormColumns(4)
             ->headerActions([
-                // Search Global - DIPINDAH KE SINI
-                Tables\Actions\Action::make('search')
-                    ->hidden(), // Sembunyikan, karena kita akan gunakan built-in search
+                FilamentExportHeaderAction::make('export')
+                    ->fileName('Valor_'.date('Y-m-d_H-i-s'))
+                    ->defaultFormat('pdf')
+                    ->color('success')
+                    ->label('Exporta PDF'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()->label('Edita'),
                 Tables\Actions\DeleteAction::make()->label('Apaga'),
-            ])
-            ->headerActions([
-                FilamentExportHeaderAction::make('export')
-                    ->fileName('Valor_' . date('Y-m-d_H-i-s'))
-                    ->defaultFormat('pdf')
-                    ->color('success')
-                    ->label('Exporta PDF'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at','desc');
     }
 
     public static function getRelations(): array

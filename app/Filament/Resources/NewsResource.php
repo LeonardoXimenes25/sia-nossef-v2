@@ -47,14 +47,16 @@ class NewsResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\Textcolumn::make('id')->label('Nu'),
-                Tables\Columns\Textcolumn::make('title')->label('Titulu'),
-                Tables\Columns\Textcolumn::make('content')
+                Tables\Columns\TextColumn::make('id')->label('Nu'),
+                Tables\Columns\TextColumn::make('title')->label('Titulu')->wrap(30),
+                Tables\Columns\TextColumn::make('category.name'),
+                Tables\Columns\TextColumn::make('content')
                     ->label('Konteudu')
-                    ->wrap(),
-                Tables\Columns\Imagecolumn::make('image')
+                    ->wrap(50),
+                Tables\Columns\ImageColumn::make('image')
                     ->label('Imajen')
-                    ->square(),
+                    ->square()
+                    ->defaultImageUrl(url('/images/placeholder.png')),
                 Tables\Columns\TextColumn::make('created_at')->date('d-m-y'),
                 Tables\Columns\TextColumn::make('updated_at')->date('d-m-y'),
 
