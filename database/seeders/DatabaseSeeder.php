@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         User::factory()->create([
+            'ni' => '12345',
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),
