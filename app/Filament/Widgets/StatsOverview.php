@@ -2,18 +2,29 @@
 
 namespace App\Filament\Widgets;
 
-use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use App\Models\Student;
+use App\Models\Subject;
+use App\Models\Teacher;
+use App\Models\ClassRoom;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+
 
 class StatsOverview extends BaseWidget
 {
+    protected static bool $isLazy = false;
     // school stats
     protected function getStats(): array
     {
         return [
-            Stat::make('Unique views', '192.1k'),
-            Stat::make('Bounce rate', '21%'),
-            Stat::make('Average time on page', '3:12'),
+            Stat::make('Total Estudante', Student::count())
+                ->color('success'),
+            Stat::make('Total Professor', Teacher::count())
+                ->color('warning'),
+            Stat::make('Total Materia', Subject::count())
+                ->color('primary'),
+            Stat::make('Total Klasse', ClassRoom::count())
+                ->color('primary'),
         ];
     }
 }
