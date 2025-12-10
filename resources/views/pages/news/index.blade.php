@@ -108,8 +108,7 @@
             @empty
             <div class="col-12 text-center py-5">
                 <i class="fas fa-newspaper display-1 text-muted mb-3"></i>
-                <h4 class="text-muted">La iha Informasaun</h4>
-                <p class="text-muted">Favor, fila fali atu hetan informasaun</p>
+                <h4 class="text-muted">Seidauk iha Informasaun</h4>
             </div>
             @endforelse
         </div>

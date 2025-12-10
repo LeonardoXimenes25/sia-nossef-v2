@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Database\Seeders\MajorSeeder;
 use Database\Seeders\PeriodSeeder;
+use Database\Seeders\ClassRoomSeeder;
 use Database\Seeders\AcademicYearSeeder;
 
 class DatabaseSeeder extends Seeder
@@ -20,10 +21,11 @@ class DatabaseSeeder extends Seeder
             MajorSeeder::class,
             AcademicYearSeeder::class,
             PeriodSeeder::class,
+            ClassRoomSeeder::class,
         ]);
 
         User::factory()->create([
-            'ni' => '12345',
+            'login_id' => '12345',
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => \Illuminate\Support\Facades\Hash::make('password'),

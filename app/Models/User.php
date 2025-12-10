@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Student;
+use App\Models\Teacher;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,7 +21,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'ni',
+        'login_id',
         'name',
         'email',
         'password',
@@ -30,7 +32,7 @@ class User extends Authenticatable
      */
     public function getAuthIdentifierName(): string
     {
-        return 'ni';
+        return 'login_id';
     }
 
     /**
@@ -55,4 +57,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function student()
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    public function teacher()
+    {
+        return $this->hasOne(Teacher::class);
+    }
+
 }

@@ -23,10 +23,7 @@ class UserResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('ni')
-                    ->label('Numeru Identifikasaun')
-                    ->required()
-                    ->maxLength(255),
+
                 Forms\Components\TextInput::make('name')
                     ->label('Naran')
                     ->required()
@@ -53,8 +50,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('name')->label('Naran'),
                 Tables\Columns\TextColumn::make('email')->label('Email'),
                 Tables\Columns\TextColumn::make('password')->label('Password'),
-
-
+                Tables\Columns\TextColumn::make('roles.name')->label('Roles'),
             ])
             ->filters([
                 //

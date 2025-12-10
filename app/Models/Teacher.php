@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use App\Models\Subject;
 use App\Models\SubjectAssignment;
 use Illuminate\Database\Eloquent\Model;
@@ -13,7 +14,8 @@ class Teacher extends Model
 
     // Mass assignable fields sesuai migration terbaru
     protected $fillable = [
-        'teacher_id',
+        'user_id',
+        'nrp',
         'name',
         'gender',
         'birth_date',
@@ -42,10 +44,16 @@ class Teacher extends Model
         return $this->hasManyThrough(
             Subject::class,
             SubjectAssignment::class,
-            'teacher_id',   // FK di subject_assignments
+            'nrp',   // FK di subject_assignments
             'id',           // FK di subjects
             'id',           // PK di teachers
             'subject_id'    // PK di subject_assignments
         );
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
 }

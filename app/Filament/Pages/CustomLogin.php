@@ -16,7 +16,7 @@ class CustomLogin extends Login
     public function form(Form $form): Form
     {
         return $form->schema([
-            TextInput::make('ni')
+            TextInput::make('login_id')
                 ->label('Numeru Identifikasaun')
                 ->required()
                 ->autocomplete(),
@@ -25,7 +25,6 @@ class CustomLogin extends Login
                 ->password()
                 ->required()
                 ->autocomplete(),
-          
         ]);
     
     }
@@ -33,20 +32,20 @@ class CustomLogin extends Login
     protected function getCredentialsFromFormData(array $data): array
     {
         return [
-            'ni' => $data['ni'],
+            'login_id' => $data['login_id'],
             'password' => $data['password'],
         ];
     }
 
     public function getUsername(): string
     {
-        return 'ni';
+        return 'login_id';
     }
 
     protected function throwFailureValidationException(): never
     {
         throw ValidationException::withMessages([
-            'data.ni' => __('filament-panels::pages/auth/login.messages.failed'),
+            'data.login_id' => __('filament-panels::pages/auth/login.messages.failed'),
         ]);
     }
 

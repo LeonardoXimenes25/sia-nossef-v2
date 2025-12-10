@@ -11,11 +11,11 @@ use App\Imports\StudentsImport;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
 use Maatwebsite\Excel\Facades\Excel;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Tables\Filters\FiltersLayout;
 use App\Filament\Resources\StudentResource\Pages;
 use AlperenErsoy\FilamentExport\Actions\FilamentExportHeaderAction;
+use Illuminate\Database\Eloquent\Builder;
+
 
 class StudentResource extends Resource
 {
@@ -31,23 +31,37 @@ class StudentResource extends Resource
                 Forms\Components\Card::make([
                     Forms\Components\Section::make('Informasi Pessoal')
                         ->schema([
-                            TextInput::make('nre')->label('ID Estudante')->required()->unique(ignoreRecord: true),
-                            TextInput::make('name')->label('Naran Estudante')->required(),
-                            Select::make('sex')
+                            Forms\Components\TextInput::make('nre')
+                                ->label('ID Estudante')
+                                ->required()
+                                ->unique(ignoreRecord: true),
+                            
+                            Forms\Components\TextInput::make('name')
+                                ->label('Naran Estudante')
+                                ->required(),
+                            
+                            Forms\Components\Select::make('sex')
                                 ->label('Sexu')
                                 ->options(['m' => 'Mane', 'f' => 'Feto'])
                                 ->required(),
+                            
                             Forms\Components\DatePicker::make('birth_date')
                                 ->label('Data Moris')
-                                ->required()
-                                ->displayFormat('d-m-Y')
-                                ->native(false)
-                                ->minDate('1990-01-01')
-                                ->maxDate(now()),
-                            TextInput::make('birth_place')->label('Fatin Moris')->required(),
-                            Forms\Components\Textarea::make('address')->label('Enderesu'),
-                            TextInput::make('parent_name')->label('Naran Inan/Aman'),
-                            TextInput::make('parent_contact')->label('Nu. Kontaktu Inan/Aman'),
+                                ->required(),
+
+                            Forms\Components\TextInput::make('birth_place')
+                                ->label('Fatin Moris')
+                                ->required(),
+
+                            Forms\Components\Textarea::make('address')
+                                ->label('Enderesu'),
+                            
+                            Forms\Components\TextInput::make('parent_name')
+                                ->label('Naran Inan/Aman'),
+                            
+                            Forms\Components\TextInput::make('parent_contact')
+                                ->label('Nu. Kontaktu Inan/Aman'),
+                            
                             Forms\Components\FileUpload::make('photo')
                                 ->label('Imagen')
                                 ->image()
@@ -59,7 +73,7 @@ class StudentResource extends Resource
                 Forms\Components\Card::make([
                     Forms\Components\Section::make('Informasaun Eskola')
                         ->schema([
-                            Select::make('class_room_id')
+                            Forms\Components\Select::make('class_room_id')
                                 ->label('Klasse / Turma')
                                 ->options(function () {
                                     return \App\Models\ClassRoom::with('major')->get()->mapWithKeys(function ($classRoom) {
@@ -70,15 +84,20 @@ class StudentResource extends Resource
                                 ->searchable()
                                 ->required(),
 
-                            Select::make('major_id')->label('Area Estudu')->relationship('major', 'name')->required(),
-                            Select::make('status')
+                            Forms\Components\Select::make('major_id')->label('Area Estudu')->relationship('major', 'name')->required(),
+
+                            Forms\Components\Select::make('status')
                                 ->label('Status')
                                 ->options(['active' => 'Aktivu','alumni' => 'Alumni','left' => 'Sai'])
                                 ->required(),
-                            TextInput::make('admission_year')->label('Tinan Entrada')->numeric(),
-                            TextInput::make('province')->label('Munisipiu'),
-                            TextInput::make('district')->label('Posto'),
-                            TextInput::make('subdistrict')->label('Suku'),
+
+                            Forms\Components\TextInput::make('admission_year')->label('Tinan Entrada')->numeric(),
+                            
+                            Forms\Components\TextInput::make('province')->label('Munisipiu'),
+                            
+                            Forms\Components\TextInput::make('district')->label('Posto'),
+                            
+                            Forms\Components\TextInput::make('subdistrict')->label('Suku'),
                         ])->columns(2),
                 ]),
             ]);
@@ -115,7 +134,7 @@ class StudentResource extends Resource
                 Tables\Filters\Filter::make('major_id')
                     ->label('Area Estudu')
                     ->form([
-                        Select::make('major_id')->label('Area Estudu')->relationship('major', 'name')->required(),
+                        Forms\Components\Select::make('major_id')->label('Area Estudu')->relationship('major', 'name')->required(),
                     ])
                     ->query(function ($query, array $data) {
                         return $query->when(
@@ -126,7 +145,7 @@ class StudentResource extends Resource
                     
                 Tables\Filters\Filter::make('admission_year')
                     ->label('Tinan Entrada')
-                    ->form([TextInput::make('admission_year')->label('Tinan Entrada')->numeric()])
+                    ->form([Forms\Components\TextInput::make('admission_year')->label('Tinan Entrada')->numeric()])
                     ->query(function ($query, array $data) {
                         return $query->when(
                             $data['admission_year'] ?? null,
@@ -179,6 +198,19 @@ class StudentResource extends Resource
     {
         return [];
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        // Jika user login adalah siswa, batasi ke data dirinya sendiri
+        if (auth()->user()->hasRole('estudante')) {
+            return $query->where('user_id', auth()->id());
+        }
+
+        return $query; // admin/guru tetap lihat semua
+    }
+
 
     public static function getPages(): array
     {

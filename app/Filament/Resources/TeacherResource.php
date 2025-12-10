@@ -37,7 +37,7 @@ class TeacherResource extends Resource
                     Forms\Components\Section::make('Informasi Pessoal')
                         ->columns(2)
                         ->schema([
-                            TextInput::make('teacher_id')
+                            TextInput::make('nrp')
                                 ->label('Id Professor')
                                 ->required()
                                 ->unique(ignoreRecord: true),
@@ -91,11 +91,6 @@ class TeacherResource extends Resource
                                 ->maxLength(20)
                                 ->required(false),
 
-                            TextInput::make('email')
-                                ->label('Email')
-                                ->email()
-                                ->required(false),
-
                             FileUpload::make('photo')
                                 ->label('Imajen')
                                 ->image()
@@ -112,7 +107,7 @@ class TeacherResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')->label('Nu')->sortable(),
-                TextColumn::make('teacher_id')->label('ID Professor')->sortable(),
+                TextColumn::make('nrp')->label('ID Professor')->sortable(),
                 TextColumn::make('name')->label('Naran Professor')->sortable(),
                 TextColumn::make('gender')->label('Sexu'),
                 TextColumn::make('birth_place')->label('Fatin Moris'),
@@ -134,7 +129,6 @@ class TeacherResource extends Resource
                     ]),
                 TextColumn::make('employment_start_date')->label('Start Date')->date(),
                 TextColumn::make('phone')->label('Phone'),
-                TextColumn::make('email')->label('Email'),
             ])
             ->filters([
                 SelectFilter::make('employment_status')

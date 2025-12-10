@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('students', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('nre', 11)->unique(); // Nomor unik siswa
             $table->string('name', 50);
             $table->enum('sex', ['m', 'f'])->default('m');
-
             $table->foreignId('class_room_id')->constrained()->cascadeOnDelete();
             $table->foreignId('major_id')->constrained()->cascadeOnDelete();
 

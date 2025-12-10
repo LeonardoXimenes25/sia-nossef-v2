@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use App\Models\Grade;
 use App\Models\Major;
 use App\Models\ClassRoom;
@@ -12,6 +13,7 @@ class Student extends Model
 {
     // Mass assignable attributes
     protected $fillable = [
+        'user_id',
         'nre',
         'name',
         'sex',
@@ -85,5 +87,9 @@ class Student extends Model
         return $this->attendances()->where('date', $date)->first();
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
 }
