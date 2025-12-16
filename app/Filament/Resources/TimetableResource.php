@@ -27,7 +27,7 @@ class TimetableResource extends Resource
             ->schema([
                 // Pilih SubjectAssignment (Guru + Mata Pelajaran)
                 Forms\Components\Select::make('subject_assignment_id')
-                    ->label('Profesor / Materia')
+                    ->label('Profesor / Disiplina')
                     ->options(function() {
                         return SubjectAssignment::with(['teacher','subject'])->get()
                             ->mapWithKeys(fn($sa) => [$sa->id => $sa->teacher->name . ' - ' . $sa->subject->name]);
@@ -50,7 +50,7 @@ class TimetableResource extends Resource
                     ->required(),
 
                 Forms\Components\Select::make('day')
-                    ->label('Hari')
+                    ->label('Loron')
                     ->options([
                         'Monday' => 'Segunda',
                         'Tuesday' => 'Tersa',
@@ -70,12 +70,22 @@ class TimetableResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('id')->label('Nu'),
                 Tables\Columns\TextColumn::make('subjectAssignment.teacher.name')->label('Profesor'),
-                Tables\Columns\TextColumn::make('subjectAssignment.subject.name')->label('Materia'),
+                Tables\Columns\TextColumn::make('subjectAssignment.subject.name')->label('Disiplina'),
                 Tables\Columns\TextColumn::make('classRoom.level')->label('Klase'),
                 Tables\Columns\TextColumn::make('classRoom.turma')->label('Turma'),
                 Tables\Columns\TextColumn::make('classRoom.major.name')->label('Area Estudu'),
-                Tables\Columns\TextColumn::make('day')->label('Loron'),
+                Tables\Columns\TextColumn::make('day')->label('Loron')
+                    ->formatStateUsing(fn ($state) => match ($state) {
+                        'Monday' => 'Segunda',
+                        'Tuesday' => 'Tersa',
+                        'Wednesday' => 'Kuarta',
+                        'Thursday' => 'Kinta',
+                        'Friday' => 'Sexta',
+                        'Saturday' => 'Sabadu',
+                        default => $state,
+                    }),
                 Tables\Columns\TextColumn::make('start_time')->label('Oras Hahu'),
                 Tables\Columns\TextColumn::make('end_time')->label('Oras Ramata'),
             ])
@@ -84,13 +94,13 @@ class TimetableResource extends Resource
             ])
             ->headerActions([
                 FilamentExportHeaderAction::make('export')
-                    ->fileName('Timetables')
+                    ->fileName('Horariu')
                     ->defaultFormat('pdf')
                     ->color('success')
                     ])
             ->actions([
-                Tables\Actions\EditAction::make()->label('Edit'),
-                Tables\Actions\DeleteAction::make()->label('Hapus'),
+                Tables\Actions\EditAction::make()->label('Edita'),
+                Tables\Actions\DeleteAction::make()->label('Apaga'),
             ])
             ->bulkActions([
             ]);

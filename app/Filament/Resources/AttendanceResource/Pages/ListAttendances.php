@@ -16,4 +16,13 @@ class ListAttendances extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
+
+    protected function getDefaultTableFilters(): array
+    {
+        return [
+            'date' => [
+                'date' => now()->toDateString(),
+            ],
+        ];
+    }
 }

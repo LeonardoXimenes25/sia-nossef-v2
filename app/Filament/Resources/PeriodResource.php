@@ -26,23 +26,23 @@ class PeriodResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Select::make('academic_year_id')
-                ->label('Tahun Ajaran')
+                ->label('Tinan Akademiku')
                 ->relationship('academicYear', 'name')
                 ->required(),
 
                 Forms\Components\TextInput::make('name')
-                    ->label('Nama Periode')
+                    ->label('Naran Periodu')
                     ->placeholder('Contoh: Primeiru, Segundu, Terceiru')
                     ->required(),
                 
                 Forms\Components\TextInput::make('order')
-                    ->label('Urutan')
+                    ->label('Ordem')
                     ->numeric()
                     ->default(fn ($record) => $record?->order ?? 1)
                     ->required(),
 
-                Forms\Components\DatePicker::make('start_date')->label('Mulai'),
-                Forms\Components\DatePicker::make('end_date')->label('Selesai'),
+                Forms\Components\DatePicker::make('start_date')->label('Data Hahu'),
+                Forms\Components\DatePicker::make('end_date')->label('SeleData Remata'),
             ]);
     }
 
@@ -50,11 +50,11 @@ class PeriodResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('academicYear.name')->label('Tahun Ajaran'),
-                Tables\Columns\TextColumn::make('name')->label('Nama Periode'),
-                Tables\Columns\TextColumn::make('order')->label('Urutan')->sortable(),
-                Tables\Columns\TextColumn::make('start_date')->date(),
-                Tables\Columns\TextColumn::make('end_date')->date(),
+                Tables\Columns\TextColumn::make('order')->label('Ordem')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('academicYear.name')->label('Tinan Akademiku')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('name')->label('Naran Periodu')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('start_date')->date()->label('Data Hahu')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('end_date')->date()->label('Data Remata')->sortable()->searchable(),
             ])
             ->filters([
                 //

@@ -6,90 +6,102 @@ use App\Filament\Resources\AttendanceResource;
 use App\Models\Attendance;
 use App\Models\Student;
 use Filament\Resources\Pages\EditRecord;
+use Illuminate\Support\Facades\DB;
 
 class EditAttendance extends EditRecord
 {
     protected static string $resource = AttendanceResource::class;
 
+    /**
+     * =========================
+     * PREFILL FORM
+     * =========================
+     */
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        // Ambil record yang sedang diedit
-        $attendanceRecord = $this->record;
-        
-        // Ambil semua attendance untuk tanggal dan kelas yang sama
-        $classRoomId = $attendanceRecord->class_room_id;
-        $date = $attendanceRecord->date;
+        $attendance = $this->record;
 
-        // Ambil semua siswa di kelas ini DENGAN NRE
+        $classRoomId = $attendance->class_room_id;
+        $date = $attendance->date;
+
+        // Ambil semua siswa di kelas ini
         $students = Student::where('class_room_id', $classRoomId)
             ->orderBy('name')
-            ->get(['id', 'name', 'nre']); // TAMBAH nre di sini
+            ->get(['id', 'name', 'nre']);
 
-        // Ambil semua attendance record untuk tanggal dan kelas ini
+        // Ambil absensi EXISTING hanya untuk kelas & tanggal ini
         $existingAttendances = Attendance::where('class_room_id', $classRoomId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->get()
             ->keyBy('student_id');
 
-        // Format data students dengan status mereka
-        $studentsData = [];
-        foreach ($students as $student) {
-            $attendance = $existingAttendances->get($student->id);
-            
-            $studentsData[] = [
-                'id' => $student->id,
-                'nre' => $student->nre, // TAMBAH nre di sini
-                'name' => $student->name,
-                'status' => $attendance ? $attendance->status : 'presente'
+        // Mapping ke repeater
+        $data['students'] = $students->map(function ($student) use ($existingAttendances) {
+            return [
+                'id'     => $student->id,
+                'nre'    => $student->nre,
+                'name'   => $student->name,
+                'status' => $existingAttendances[$student->id]->status ?? 'presente',
             ];
-        }
+        })->toArray();
 
-        $data['students'] = $studentsData;
         $data['class_room_id'] = $classRoomId;
         $data['date'] = $date;
 
         return $data;
     }
 
+    /**
+     * =========================
+     * SAVE DATA
+     * =========================
+     */
     protected function handleRecordUpdate($record, array $data): Attendance
     {
-        $classRoomId = $data['class_room_id'];
-        $date = $data['date'];
-        $students = $data['students'] ?? [];
+        DB::transaction(function () use ($data) {
+            $classRoomId = $data['class_room_id'];
+            $date = $data['date'];
+            $students = $data['students'] ?? [];
 
-        \Log::info('Updating attendance:', [
-            'class_room_id' => $classRoomId,
-            'date' => $date,
-            'students_count' => count($students),
-            'students_data' => $students
-        ]);
+            foreach ($students as $studentRow) {
+                if (empty($studentRow['id'])) {
+                    continue;
+                }
 
-        // Update atau create attendance untuk setiap student
-        foreach ($students as $studentRow) {
-            if (!isset($studentRow['id'])) continue;
-
-            Attendance::updateOrCreate(
-                [
-                    'student_id' => $studentRow['id'],
-                    'class_room_id' => $classRoomId,
-                    'date' => $date,
-                ],
-                [
-                    'status' => $studentRow['status'] ?? 'presente',
-                ]
-            );
-        }
+                Attendance::updateOrCreate(
+                    [
+                        'student_id' => $studentRow['id'],
+                        'class_room_id' => $classRoomId,
+                        'date' => $date,
+                    ],
+                    [
+                        'status' => $studentRow['status'] ?? 'presente',
+                    ]
+                );
+            }
+        });
 
         return $record;
     }
 
+    /**
+     * =========================
+     * NOTIFICATION
+     * =========================
+     */
     protected function getSavedNotificationTitle(): ?string
     {
-        return 'Absensi berhasil diperbarui';
+        return 'Update Susesu';
     }
 
+    /**
+     * =========================
+     * REDIRECT
+     * =========================
+     */
     protected function getRedirectUrl(): string
     {
+        // Kembali ke index (yang default = hari ini)
         return $this->getResource()::getUrl('index');
     }
 }

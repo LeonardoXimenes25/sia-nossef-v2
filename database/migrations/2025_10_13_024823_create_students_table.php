@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('name', 50);
             $table->enum('sex', ['m', 'f'])->default('m');
             $table->foreignId('class_room_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('major_id')->constrained()->cascadeOnDelete();
 
             // Field tambahan
             $table->date('birth_date')->nullable();           // Tanggal lahir

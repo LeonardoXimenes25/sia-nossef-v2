@@ -18,7 +18,6 @@ class Student extends Model
         'name',
         'sex',
         'class_room_id',
-        'major_id',
         'birth_date',
         'birth_place',
         'address',
@@ -37,12 +36,6 @@ class Student extends Model
     public function classRoom()
     {
         return $this->belongsTo(ClassRoom::class);
-    }
-
-    // Relasi ke jurusan
-    public function major()
-    {
-        return $this->belongsTo(Major::class);
     }
 
     // Relasi ke nilai / grades

@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\AttendanceResource\Pages;
 
-use App\Filament\Resources\AttendanceResource;
-use App\Models\Attendance;
 use App\Models\Student;
+use App\Models\Attendance;
 use Filament\Resources\Pages\CreateRecord;
+use App\Filament\Resources\AttendanceResource;
 
 class CreateAttendance extends CreateRecord
 {
@@ -17,29 +17,27 @@ class CreateAttendance extends CreateRecord
         $date = $data['date'];
         $students = $data['students'] ?? [];
 
-        \Log::info('Creating attendance:', [
-            'class_room_id' => $classRoomId,
-            'date' => $date,
-            'students_count' => count($students),
-            'students_data' => $students
-        ]);
+        // ✅ SIMPAN KELAS TERAKHIR KE SESSION
+        session()->put('attendance_class_room_id', $classRoomId);
 
-        // Jika students kosong, ambil dari database dengan NRE
+        // Jika students kosong, ambil dari database
         if (empty($students)) {
             $students = Student::where('class_room_id', $classRoomId)
                 ->orderBy('name')
-                ->get(['id', 'name', 'nre']) // TAMBAH nre di sini
-                ->map(fn($s) => [
-                    'id' => $s->id, 
+                ->get(['id', 'name', 'nre'])
+                ->map(fn ($s) => [
+                    'id' => $s->id,
                     'name' => $s->name,
-                    'nre' => $s->nre, // TAMBAH nre di sini
-                    'status' => 'presente'
+                    'nre' => $s->nre,
+                    'status' => 'presente',
                 ])
                 ->toArray();
         }
 
         foreach ($students as $studentRow) {
-            if (!isset($studentRow['id'])) continue;
+            if (!isset($studentRow['id'])) {
+                continue;
+            }
 
             Attendance::updateOrCreate(
                 [
@@ -53,7 +51,7 @@ class CreateAttendance extends CreateRecord
             );
         }
 
-        // Return first record untuk memenuhi return type
+        // Kembalikan satu record (wajib oleh Filament)
         return Attendance::where('class_room_id', $classRoomId)
             ->where('date', $date)
             ->first() ?? new Attendance();
@@ -61,7 +59,7 @@ class CreateAttendance extends CreateRecord
 
     protected function getCreatedNotificationTitle(): ?string
     {
-        return 'Absensi Berhasil';
+        return 'Absensi Berhasil Disimpan';
     }
 
     protected function getRedirectUrl(): string
