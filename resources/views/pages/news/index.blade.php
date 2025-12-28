@@ -54,7 +54,7 @@
                             <div class="row g-0 bg-dark text-white">
                                 <div class="col-md-6 position-relative">
                                     <img src="{{ $item->image ? asset('storage/'.$item->image) : asset('images/default-news.jpg') }}"
-                                         class="img-fluid w-100" alt="{{ $item->title }}" style="height: 350px; object-fit: cover;">
+                                        class="img-fluid w-100" alt="{{ $item->title }}" style="height: 350px; object-fit: cover;">
                                     <div class="position-absolute bottom-0 start-0 p-3 bg-dark bg-opacity-50 w-100">
                                         <span class="badge bg-primary mb-2">{{ $item->category->name ?? 'Tanpa Kategori' }}</span>
                                         <h4 class="mb-0 text-white">{{ $item->title }}</h4>
@@ -89,7 +89,7 @@
                 <div class="card h-100 news-card shadow-sm border-0 overflow-hidden">
                     <div class="position-relative">
                         <img src="{{ $item->image ? asset('storage/'.$item->image) : asset('images/default-news.jpg') }}" 
-                             class="card-img-top" alt="{{ $item->title }}" style="height: 200px; object-fit: cover;">
+                            class="card-img-top" alt="{{ $item->title }}" style="height: 200px; object-fit: cover;">
                         <span class="badge bg-primary position-absolute top-0 end-0 m-3">{{ $item->category->name ?? 'Tanpa Kategori' }}</span>
                         <small class="text-white bg-dark bg-opacity-75 px-2 py-1 rounded position-absolute bottom-0 start-0 m-2">
                             <i class="far fa-calendar me-1"></i>{{ \Carbon\Carbon::parse($item->published_at)->format('d M Y') }}

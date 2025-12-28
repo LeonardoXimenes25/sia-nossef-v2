@@ -2,68 +2,57 @@
 
 namespace App\Filament\Resources\AttendanceResource\Pages;
 
-use App\Models\Student;
-use App\Models\Attendance;
-use Filament\Resources\Pages\CreateRecord;
 use App\Filament\Resources\AttendanceResource;
+use Filament\Resources\Pages\CreateRecord;
+use App\Models\Attendance;
+use Illuminate\Database\Eloquent\Model;
 
 class CreateAttendance extends CreateRecord
 {
     protected static string $resource = AttendanceResource::class;
 
-    protected function handleRecordCreation(array $data): Attendance
+    /**
+     * Override handleRecordCreation untuk menyimpan multiple records
+     */
+    protected function handleRecordCreation(array $data): Model
     {
-        $classRoomId = $data['class_room_id'];
-        $date = $data['date'];
+        // Extract students data
         $students = $data['students'] ?? [];
-
-        // ✅ SIMPAN KELAS TERAKHIR KE SESSION
-        session()->put('attendance_class_room_id', $classRoomId);
-
-        // Jika students kosong, ambil dari database
-        if (empty($students)) {
-            $students = Student::where('class_room_id', $classRoomId)
-                ->orderBy('name')
-                ->get(['id', 'name', 'nre'])
-                ->map(fn ($s) => [
-                    'id' => $s->id,
-                    'name' => $s->name,
-                    'nre' => $s->nre,
-                    'status' => 'presente',
-                ])
-                ->toArray();
+        
+        // Remove students from data array
+        unset($data['students']);
+        
+        // Simpan attendance untuk setiap student
+        $attendanceRecords = [];
+        foreach ($students as $student) {
+            $attendanceRecords[] = Attendance::create([
+                'academic_year_id' => $data['academic_year_id'],
+                'period_id' => $data['period_id'],
+                'class_room_id' => $data['class_room_id'],
+                'subject_assignment_id' => $data['subject_assignment_id'],
+                'student_id' => $student['id'],
+                'status' => $student['status'],
+                'date' => $data['date'],
+            ]);
         }
-
-        foreach ($students as $studentRow) {
-            if (!isset($studentRow['id'])) {
-                continue;
-            }
-
-            Attendance::updateOrCreate(
-                [
-                    'student_id' => $studentRow['id'],
-                    'class_room_id' => $classRoomId,
-                    'date' => $date,
-                ],
-                [
-                    'status' => $studentRow['status'] ?? 'presente',
-                ]
-            );
-        }
-
-        // Kembalikan satu record (wajib oleh Filament)
-        return Attendance::where('class_room_id', $classRoomId)
-            ->where('date', $date)
-            ->first() ?? new Attendance();
+        
+        // Return record pertama (untuk redirect)
+        return $attendanceRecords[0] ?? new Attendance();
     }
 
-    protected function getCreatedNotificationTitle(): ?string
-    {
-        return 'Absensi Berhasil Disimpan';
-    }
-
+    /**
+     * Override redirect after create
+     */
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    /**
+     * Success notification message
+     */
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Absénsia rejistu ho suksesu';
     }
 }

@@ -7,9 +7,7 @@ use Filament\Pages\Dashboard as BaseDashboard;
 class Dashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
-    protected static string $view = 'filament.pages.dashboard';
-
-    protected static ?int $navigationSort = -2;
+    protected static ?int $navigationSort = -3;
 
     public function getHeading(): string
     {
@@ -21,11 +19,16 @@ class Dashboard extends BaseDashboard
         return 'Dashboard';
     }
 
+
+    /**
+     * BODY DASHBOARD
+     */
     public function getWidgets(): array
     {
         return [
-            \App\Filament\Widgets\StatsOverview::class,
-            \App\Filament\Widgets\StudentGender::class,
+            \App\Filament\Widgets\LatestTimetables::class,     // Stats di tengah
+            \App\Filament\Widgets\StudentGender::class,     // Gender chart di bawah
+            \App\Filament\Widgets\LatestTimetables::class, 
         ];
-    }   
+    }
 }

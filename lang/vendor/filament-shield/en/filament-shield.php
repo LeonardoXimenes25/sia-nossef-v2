@@ -49,7 +49,7 @@ return [
     'section' => 'Entities',
     'resources' => 'Resources',
     'widgets' => 'Widgets',
-    'pages' => 'Pages',
+    'pages' => 'Pajina',
     'custom' => 'Custom Permissions',
 
     /*

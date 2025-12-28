@@ -21,7 +21,7 @@ class StatsOverview extends BaseWidget
                 ->color('success'),
             Stat::make('Total Professor', Teacher::count())
                 ->color('warning'),
-            Stat::make('Total Materia', Subject::count())
+            Stat::make('Total Disiplina', Subject::count())
                 ->color('primary'),
             Stat::make('Total Klasse', ClassRoom::count())
                 ->color('primary'),

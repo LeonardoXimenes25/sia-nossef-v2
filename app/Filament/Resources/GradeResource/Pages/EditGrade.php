@@ -10,13 +10,15 @@ use Filament\Resources\Pages\EditRecord;
 class EditGrade extends EditRecord
 {
     protected static string $resource = GradeResource::class;
+    protected static ?string $title = 'Edita Valor';
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
         $gradeRecord = $this->record;
 
         $classRoomId = $gradeRecord->class_room_id;
-        $subjectAssignmentId = $gradeRecord->subject_assignment_id;
+        $subjectId = $gradeRecord->subject_id;
+        $teacherId = $gradeRecord->teacher_id;
         $academicYearId = $gradeRecord->academic_year_id;
         $periodId = $gradeRecord->period_id;
 
@@ -27,7 +29,7 @@ class EditGrade extends EditRecord
 
         // Ambil semua grade untuk kombinasi yang sama
         $existingGrades = Grade::where('class_room_id', $classRoomId)
-            ->where('subject_assignment_id', $subjectAssignmentId)
+            ->where('subject_id', $subjectId)
             ->where('academic_year_id', $academicYearId)
             ->where('period_id', $periodId)
             ->get()
@@ -49,7 +51,8 @@ class EditGrade extends EditRecord
         return [
             'students' => $studentsData,
             'class_room_id' => $classRoomId,
-            'subject_assignment_id' => $subjectAssignmentId,
+            'subject_id' => $subjectId,
+            'teacher_id' => $teacherId,
             'academic_year_id' => $academicYearId,
             'period_id' => $periodId,
         ];
@@ -58,7 +61,8 @@ class EditGrade extends EditRecord
     protected function handleRecordUpdate($record, array $data): Grade
     {
         $classRoomId = $data['class_room_id'];
-        $subjectAssignmentId = $data['subject_assignment_id'];
+        $subjectId = $data['subject_id'];
+        $teacherId = $data['teacher_id'] ?? null;
         $academicYearId = $data['academic_year_id'];
         $periodId = $data['period_id'];
         $students = $data['students'] ?? [];
@@ -73,7 +77,8 @@ class EditGrade extends EditRecord
                 [
                     'student_id' => $studentRow['id'],
                     'class_room_id' => $classRoomId,
-                    'subject_assignment_id' => $subjectAssignmentId,
+                    'subject_id' => $subjectId,
+                    'teacher_id' => $teacherId,
                     'academic_year_id' => $academicYearId,
                     'period_id' => $periodId,
                 ],

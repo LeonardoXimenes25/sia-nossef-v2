@@ -9,6 +9,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateSubject extends CreateRecord
 {
     protected static string $resource = SubjectResource::class;
+    protected static ?string $title = 'Kria Disiplina';
 
     protected function getRedirectUrl(): string
     {

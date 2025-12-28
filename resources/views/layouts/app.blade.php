@@ -27,8 +27,15 @@
   <!-- Main CSS File -->
   <link href="assets/css/main.css" rel="stylesheet">
 
+  {{-- Tailwind CSS --}}
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
   {{-- livewire --}}
   @livewireStyles
+
+  <!-- OrgChart CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/orgchart@2.1.9/dist/css/jquery.orgchart.min.css">
+
 
 </head>
 
@@ -75,8 +82,13 @@
 {{-- Tambahkan ApexCharts CDN --}}
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-  {{-- livewire --}}
-  @livewireScripts
+{{-- livewire --}}
+@livewireScripts
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/orgchart@2.1.9/dist/css/jquery.orgchart.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/orgchart@2.1.9/dist/js/jquery.orgchart.min.js"></script>
+
 
 
 </body>

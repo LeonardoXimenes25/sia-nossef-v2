@@ -2,17 +2,15 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\SubjectResource\Pages;
-use App\Models\Subject;
-use App\Models\Major;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Tables;
+use App\Models\Major;
+use App\Models\Subject;
+use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
+use App\Filament\Resources\SubjectResource\Pages;
+use AlperenErsoy\FilamentExport\Actions\FilamentExportHeaderAction;
 
 class SubjectResource extends Resource
 {
@@ -26,15 +24,13 @@ class SubjectResource extends Resource
     {
         return $form
             ->schema([
-                
-
                 // Nama Mata Pelajaran
-                TextInput::make('name')
+                Forms\Components\TextInput::make('name')
                     ->label('Naran Disiplina')
                     ->required(),
 
                 // Pilih Jurusan (many-to-many)
-                Select::make('majors')
+                Forms\Components\Select::make('majors')
                     ->label('Area Estudu')
                     ->multiple()
                     ->relationship('majors', 'name') // relasi pivot
@@ -47,13 +43,26 @@ class SubjectResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')->label('Nu. '),
-                TextColumn::make('name')->label('Naran Disiplina'),
-                TextColumn::make('majors')
-                    ->label('Area Estudu')
-                    ->getStateUsing(fn($record) => $record->majors->pluck('name')->join(', ')),
+                Tables\Columns\TextColumn::make('id')->label('Nu. '),
+                Tables\Columns\TextColumn::make('name')->label('Naran Disiplina')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('majors.name')->label('Area Estudu')
+                    ->badge()
+                    ->color(fn ($record) =>
+                            $record->majors->count() > 1
+                                ? 'success'   // hijau jika lebih dari satu
+                                : 'primary'   // biru jika satu
+                        )
+                    ->searchable()
+                    ->sortable(),
+
             ])
             ->filters([])
+            ->headerActions([
+                FilamentExportHeaderAction::make('export')
+                    ->fileName('Lista-Disiplina')
+                    ->defaultFormat('pdf')
+                    ->color('success'),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])

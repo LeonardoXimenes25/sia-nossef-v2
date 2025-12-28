@@ -9,6 +9,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditClassRoom extends EditRecord
 {
     protected static string $resource = ClassRoomResource::class;
+    protected static ?string $title = 'Edita Sala Aula';
 
     protected function getHeaderActions(): array
     {

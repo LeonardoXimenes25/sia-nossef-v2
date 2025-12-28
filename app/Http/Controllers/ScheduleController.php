@@ -3,54 +3,78 @@
 namespace App\Http\Controllers;
 
 use App\Models\Timetable;
+use App\Models\AcademicYear;
+use App\Models\Period;
 use Illuminate\Http\Request;
-use PDF; // jangan lupa install dompdf: composer require barryvdh/laravel-dompdf
 
 class ScheduleController extends Controller
 {
     public function index()
     {
+        // Ambil Academic Year & Period aktif
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        $activePeriod = Period::where('is_active', true)
+            ->where('academic_year_id', $activeYear->id)
+            ->first();
+
+        // Ambil jadwal hanya untuk guru yang aktif dan subject assignment aktif
         $timetables = Timetable::with([
-            'subjectAssignment.teacher',
-            'subjectAssignment.subject',
-            'classRoom.major',
-        ])->orderBy('day')->orderBy('start_time')->get();
+                'subjectAssignment.teacher',
+                'subjectAssignment.subjects',
+                'classRoom.major',
+                'period',
+                'academicYear'
+            ])
+            ->where('academic_year_id', $activeYear->id)
+            ->where('period_id', $activePeriod->id)
+            ->whereHas('subjectAssignment', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->orderByRaw("FIELD(day, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday')")
+            ->orderBy('start_time')
+            ->get();
 
-        $classes = $timetables
-            ->pluck('classRoom.level')
-            ->filter()
-            ->unique()
-            ->values();
+        // Ambil data filter
+        $classes  = $timetables->pluck('classRoom.level')->filter()->unique()->values();
+        $turmas   = $timetables->pluck('classRoom.turma')->filter()->unique()->values();
+        $teachers = $timetables->pluck('subjectAssignment.teacher.name')->filter()->unique()->values();
+        $majors   = $timetables->pluck('classRoom.major.name')->filter()->unique()->values();
+        $periods       = [$activePeriod]; // hanya period aktif
+        $academicYears = [$activeYear];   // hanya academic year aktif
 
-        $turmas = $timetables
-            ->pluck('classRoom.turma')
-            ->filter()
-            ->unique()
-            ->values();
-
-        $teachers = $timetables
-            ->pluck('subjectAssignment.teacher.name')
-            ->filter()
-            ->unique()
-            ->values();
-
-        $majors = $timetables
-            ->pluck('classRoom.major.name')
-            ->filter()
-            ->unique()
-            ->values();
-
-        return view('pages.timetable.index', compact('timetables', 'classes', 'turmas', 'teachers', 'majors'));
+        return view('pages.timetable.index', compact(
+            'timetables',
+            'classes',
+            'turmas',
+            'teachers',
+            'majors',
+            'periods',
+            'academicYears',
+            'activePeriod'
+        ));
     }
 
     public function download(Request $request)
     {
-        $query = Timetable::with([
-            'subjectAssignment.teacher',
-            'subjectAssignment.subject',
-            'classRoom.major',
-        ]);
+        $activeYear = AcademicYear::where('is_active', true)->first();
+        $activePeriod = Period::where('is_active', true)
+            ->where('academic_year_id', $activeYear->id)
+            ->first();
 
+        $query = Timetable::with([
+                'subjectAssignment.teacher',
+                'subjectAssignment.subjects',
+                'classRoom.major',
+                'period',
+                'academicYear'
+            ])
+            ->where('academic_year_id', $activeYear->id)
+            ->where('period_id', $activePeriod->id)
+            ->whereHas('subjectAssignment', function ($q) {
+                $q->where('is_active', true);
+            });
+
+        // Filter tambahan jika ada request
         if ($request->class && $request->class !== 'all') {
             $query->whereHas('classRoom', fn($q) => $q->where('level', $request->class));
         }
@@ -67,14 +91,15 @@ class ScheduleController extends Controller
             $query->where('day', $request->day);
         }
 
-        $timetables = $query->orderBy('day')->orderBy('start_time')->get();
+        $timetables = $query->orderByRaw("FIELD(day, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday')")
+                            ->orderBy('start_time')
+                            ->get();
 
         if ($timetables->isEmpty()) {
             return back()->with('error', 'La iha orariu atu download.');
         }
 
-        $pdf = PDF::loadView('pages.timetable.download', compact('timetables'));
-
+        $pdf = \PDF::loadView('pages.timetable.download', compact('timetables'));
         return $pdf->download('Orariu_ESG_NOSSEF.pdf');
     }
 }

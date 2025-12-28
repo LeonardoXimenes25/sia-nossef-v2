@@ -9,12 +9,11 @@ class Grade extends Model
 {
     use HasFactory;
 
-    // Kolom yang bisa diisi massal
     protected $fillable = [
         'student_id',
+        'subject_id',
         'class_room_id',
         'teacher_id',
-        'subject_assignment_id',
         'academic_year_id',
         'period_id',
         'score',
@@ -22,52 +21,65 @@ class Grade extends Model
     ];
 
     protected $casts = [
-        'score' => 'decimal:1', // untuk handle nilai decimal seperti 8.5
+        'score' => 'decimal:1',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
 
-    // Relasi ke Murid
+    // Relasi ke Student
     public function student()
     {
         return $this->belongsTo(Student::class);
     }
 
-    // Relasi ke Kelas
+    // Relasi ke Subject
+    public function subject()
+    {
+        return $this->belongsTo(Subject::class);
+    }
+
+    // Relasi ke ClassRoom
     public function classRoom()
     {
         return $this->belongsTo(ClassRoom::class);
     }
 
-    // Relasi ke Guru
+    // Relasi ke Teacher
     public function teacher()
     {
         return $this->belongsTo(Teacher::class);
     }
 
-    // Relasi ke SubjectAssignment (Guru + Mata Pelajaran + Kelas)
-    public function subjectAssignment()
-    {
-        return $this->belongsTo(SubjectAssignment::class);
-    }
-
-    // Relasi ke Tahun Ajaran
+    // Relasi ke AcademicYear
     public function academicYear()
     {
         return $this->belongsTo(AcademicYear::class);
     }
 
-    // Relasi ke Periode
+    // Relasi ke Period
     public function period()
     {
         return $this->belongsTo(Period::class);
     }
 
-    /**
-     * Akses cepat ke Mata Pelajaran melalui SubjectAssignment
-     */
-    public function subject()
+    // Function untuk remark berdasarkan score
+    public static function getRemarksByScore($score): string
     {
-        return $this->subjectAssignment?->subject;
+        if ($score === null || $score === '') {
+            return 'Não Avaliado';
+        }
+
+        $score = (float) $score;
+
+        return match (true) {
+            $score >= 9.5 => 'Excelente',
+            $score >= 8.5 => 'Muito Bom',
+            $score >= 7.0 => 'Bom',
+            $score >= 6.0 => 'Suficiente',
+            $score >= 5.0 => 'Insuficiente',
+            $score >= 3.0 => 'Mau',
+            $score >= 1.0 => 'Muito Mau',
+            default       => 'Não Avaliado',
+        };
     }
 }

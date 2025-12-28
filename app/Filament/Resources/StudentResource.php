@@ -5,22 +5,53 @@ namespace App\Filament\Resources;
 use Filament\Forms;
 use Filament\Tables;
 use App\Models\Student;
-use App\Models\ClassRoom;
 use Filament\Forms\Form;
+use App\Models\ClassRoom;
 use Filament\Tables\Table;
 use App\Imports\StudentsImport;
 use Filament\Resources\Resource;
 use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\StudentResource\Pages;
 use AlperenErsoy\FilamentExport\Actions\FilamentExportHeaderAction;
-use Illuminate\Database\Eloquent\Builder;
 
 class StudentResource extends Resource
 {
     protected static ?string $model = Student::class;
     protected static ?string $navigationIcon = 'heroicon-o-users';
     protected static ?string $navigationLabel = 'Estudante';
+    protected static ?string $navigationGroup = 'Managementu Akademiku';
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()->with(['classRoom.major']);
+        
+        // Filter by student_id if user has 'estudante' role
+        $user = Auth::user();
+        if ($user && $user->hasRole('estudante')) {
+            $student = $user->student;
+            if ($student) {
+                $query->where('id', $student->id);
+            }
+        }
+
+        return $query;
+    }
+
+    /**
+     * Get classroom options with major information
+     */
+    protected static function getClassroomOptions(): array
+    {
+        return ClassRoom::with('major')
+            ->get()
+            ->mapWithKeys(fn($c) => [
+                $c->id => $c->level . ' ' . $c->turma . ' (' . ($c->major?->name ?? '') . ')'
+            ])
+            ->toArray();
+    }
 
     public static function form(Form $form): Form
     {
@@ -45,16 +76,15 @@ class StudentResource extends Resource
                         ->schema([
                             Forms\Components\Select::make('class_room_id')
                                 ->label('Klasse / Turma')
-                                ->options(function () {
-                                    return ClassRoom::with('major')->get()->mapWithKeys(fn($c) => [
-                                        $c->id => $c->level . ' ' . $c->turma . ' (' . ($c->major?->name ?? '') . ')'
-                                    ]);
-                                })
+                                ->options(self::getClassroomOptions())
                                 ->searchable()
                                 ->required(),
                             Forms\Components\Select::make('status')
                                 ->label('Status')
-                                ->options(['active'=>'Aktivu','alumni'=>'Alumni','left'=>'Sai'])
+                                ->options([
+                                    'active'=>'Aktivu',
+                                    'alumni'=>'Alumni',
+                                    'left'=>'Sai'])
                                 ->required(),
                             Forms\Components\TextInput::make('admission_year')->label('Tinan Entrada')->numeric(),
                             Forms\Components\TextInput::make('province')->label('Munisipiu'),
@@ -71,43 +101,38 @@ class StudentResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('Nu')->sortable(),
                 Tables\Columns\TextColumn::make('nre')->label('ID Estudante')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('name')->label('Naran Estudante')->sortable(),
-                Tables\Columns\TextColumn::make('sex_text')->label('Sexu'),
-                Tables\Columns\TextColumn::make('classRoom.level')->label('Klasse'),
-                Tables\Columns\TextColumn::make('classRoom.turma')->label('Turma'),
-                Tables\Columns\TextColumn::make('classRoom.major.code')->label('Area Estudu')->badge()->color(fn($record)=>match($record->classRoom->major?->code){
-                    'CT'=>'success',
-                    'CSH'=>'primary',
-                    default=>'secondary',
-                }),
-                Tables\Columns\TextColumn::make('admission_year')->label('Tinan Entrada'),
-                Tables\Columns\TextColumn::make('status_text')->label('Status'),
+                Tables\Columns\TextColumn::make('name')->label('Naran Estudante')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('sex')->label('Sexu')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('classRoom.level')->label('Klasse')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('classRoom.turma')->label('Turma')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('classRoom.major.code')->label('Area Estudu')->badge()->color(fn($record) => match($record->classRoom?->major?->code) {
+                    'CT' => 'success',
+                    'CSH' => 'primary',
+                    default => 'secondary',
+                })->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('admission_year')->label('Tinan Entrada')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('status')->label('Status')->sortable()->searchable(),
             ])
             ->filters([
-                // 🔹 Filter Status
+                Tables\Filters\SelectFilter::make('class_room_id')
+                    ->label('Kelas / Turma')
+                    ->options(self::getClassroomOptions())
+                    ->searchable()
+                    ->preload(),
+                
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'active'=>'Aktivu',
-                        'alumni'=>'Alumni',
-                        'left'=>'Sai',
+                        'active' => 'Aktivu',
+                        'alumni' => 'Alumni',
+                        'left' => 'Sai',
                     ])
                     ->label('Status')
                     ->searchable()
                     ->preload(),
 
-                // 🔹 Filter Kelas
-                Tables\Filters\SelectFilter::make('class_room_id')
-                    ->label('Kelas / Turma')
-                    ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[
-                        $c->id => $c->level . ' ' . $c->turma . ' (' . ($c->major?->name ?? '') . ')'
-                    ])->toArray())
-                    ->searchable()
-                    ->preload(),
-
-                // 🔹 Filter Tahun Akademik / Admission Year
                 Tables\Filters\Filter::make('admission_year')
                     ->form([Forms\Components\TextInput::make('admission_year')->numeric()])
-                    ->query(fn(Builder $query,array $data)=>$query->when($data['admission_year']??null, fn($q,$year)=>$q->where('admission_year',$year)))
+                    ->query(fn(Builder $query, array $data) => $query->when($data['admission_year'] ?? null, fn($q, $year) => $q->where('admission_year', $year)))
                     ->label('Tinan Entrada'),
             ])
             ->filtersLayout(Tables\Enums\FiltersLayout::AboveContent)
@@ -142,7 +167,7 @@ class StudentResource extends Resource
     public static function getRelations(): array
     {
         return [];
-    }
+    }  
 
     public static function getPages(): array
     {

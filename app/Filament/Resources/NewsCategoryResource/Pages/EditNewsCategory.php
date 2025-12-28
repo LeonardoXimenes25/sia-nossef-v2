@@ -9,6 +9,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditNewsCategory extends EditRecord
 {
     protected static string $resource = NewsCategoryResource::class;
+    protected static ?string $title = 'Edita Kategoria Notisia';
 
     protected function getHeaderActions(): array
     {

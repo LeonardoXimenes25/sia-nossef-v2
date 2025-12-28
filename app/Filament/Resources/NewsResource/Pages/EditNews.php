@@ -8,6 +8,7 @@ use Filament\Resources\Pages\EditRecord;
 class EditNews extends EditRecord
 {
     protected static string $resource = NewsResource::class;
+    protected static ?string $title = 'Edita Notisia';
 
     protected function getRedirectUrl(): string
     {

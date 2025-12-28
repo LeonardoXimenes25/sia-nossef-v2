@@ -20,6 +20,8 @@ class AcademicYearResource extends Resource
     protected static ?string $navigationGroup = 'Managementu Akademiku';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Ano Letivo';
+    
+
 
     public static function form(Form $form): Form
     {
@@ -49,7 +51,11 @@ class AcademicYearResource extends Resource
                 Tables\Columns\TextColumn::make('name')->label('Tinan Letivu')->sortable(),
                 Tables\Columns\TextColumn::make('start_date')->label('Data Hahu')->date('d-m-y'),
                 Tables\Columns\TextColumn::make('end_date')->label('Data Remaata')->date('d-m-y'),
-                Tables\Columns\IconColumn::make('is_active')->boolean()->label('Aktivu'),
+                Tables\Columns\IconColumn::make('is_active')
+                    ->boolean()
+                    ->label('Aktivu')
+                    ->trueIcon('heroicon-o-check-circle')
+                    ->falseIcon('heroicon-o-x-circle'),
             ])
             ->filters([
                 //

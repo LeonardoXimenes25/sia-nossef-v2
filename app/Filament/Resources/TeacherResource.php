@@ -81,8 +81,18 @@ class TeacherResource extends Resource
                             DatePicker::make('employment_start_date')
                                 ->label('Data Servisu')
                                 ->required(false),
+                            
+                        Forms\Components\Select::make('teacher_position_id')
+                            ->label('Posisaun Professor')
+                            ->relationship('teacherPosition', 'name')
+                            ->default(function () {
+                                // Ambil ID posisi "Mestre"
+                                $mestre = \App\Models\TeacherPosition::where('name', 'Mestre')->first();
+                                return $mestre?->id ?? null;
+                            })
+                            ->required(),
                         ]),
-
+                    
                     // Seksi 2: Kontak & Foto
                     Forms\Components\Section::make('Kontak & Foto')
                         ->columns(2) // 2 kolom untuk input
@@ -108,6 +118,7 @@ class TeacherResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')->label('Nu')->sortable(),
+                TextColumn::make('teacherPosition.name')->label('Posisaun Professor')->sortable(),
                 TextColumn::make('nrp')->label('ID Professor')->sortable(),
                 TextColumn::make('name')->label('Naran Professor')->sortable(),
                 TextColumn::make('gender')->label('Sexu'),

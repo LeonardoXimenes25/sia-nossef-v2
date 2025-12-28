@@ -9,6 +9,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateClassRoom extends CreateRecord
 {
     protected static string $resource = ClassRoomResource::class;
+    protected static ?string $title = 'Kria Sala Aula';
 
     protected function getRedirectUrl(): string
     {

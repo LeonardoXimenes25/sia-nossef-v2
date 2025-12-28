@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('order'); // 1, 2, 3
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
     }

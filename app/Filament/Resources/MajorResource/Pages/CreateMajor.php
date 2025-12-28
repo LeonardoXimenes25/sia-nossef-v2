@@ -9,6 +9,7 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateMajor extends CreateRecord
 {
     protected static string $resource = MajorResource::class;
+    protected static ?string $title = 'Kria Area Estudu';
 
     protected function getRedirectUrl(): string
     {

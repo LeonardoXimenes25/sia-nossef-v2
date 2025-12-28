@@ -36,7 +36,7 @@
             <tr>
                 <td>{{ $dayNames[$tt->day] ?? $tt->day }}</td>
                 <td>{{ $tt->start_time }} - {{ $tt->end_time }}</td>
-                <td>{{ optional(optional($tt->subjectAssignment)->subject)->name ?? '-' }}</td>
+                <td>{{ optional($tt->subject)->name ?? '-' }}</td>
                 <td>{{ optional(optional($tt->subjectAssignment)->teacher)->name ?? '-' }}</td>
                 <td>{{ optional($tt->classRoom)->level ?? '-' }}</td>
                 <td>{{ optional($tt->classRoom)->turma ?? '-' }}</td>

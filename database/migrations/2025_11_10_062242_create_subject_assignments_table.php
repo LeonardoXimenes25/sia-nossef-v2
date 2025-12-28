@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('subject_id')->constrained()->onDelete('cascade');
             $table->foreignId('academic_year_id')->constrained()->onDelete('cascade');
             $table->foreignId('period_id')->constrained()->onDelete('cascade');
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
     }

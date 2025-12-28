@@ -6,36 +6,42 @@ use App\Filament\Resources\GradeResource;
 use App\Models\Grade;
 use App\Models\Student;
 use App\Models\ClassRoom;
-use App\Models\SubjectAssignment;
+use App\Models\Subject;
+use App\Models\Teacher;
+use App\Models\AcademicYear;
+use App\Models\Period;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Forms;
 
 class CreateGrade extends CreateRecord
 {
     protected static string $resource = GradeResource::class;
+    protected static ?string $title = 'Kria Valor';
 
     protected function getFormSchema(): array
     {
+        $activeYearId = AcademicYear::where('is_active', true)->value('id');
+        $activePeriodId = Period::where('is_active', true)
+            ->where('academic_year_id', $activeYearId)
+            ->value('id');
+
         return [
             Forms\Components\Select::make('class_room_id')
                 ->label('Klasse / Turma')
-                ->options(
-                    ClassRoom::with('major')->get()->mapWithKeys(fn ($c) => [
-                        $c->id => $c->level . ' ' . $c->turma . ' (' . $c->major->name . ')'
-                    ])
-                )
-                ->required()
+                ->options(ClassRoom::with('major')->get()->mapWithKeys(fn ($c) => [
+                    $c->id => "{$c->level} {$c->turma} ({$c->major->name})"
+                ]))
                 ->reactive()
+                ->required()
                 ->afterStateUpdated(function ($state, Forms\Set $set) {
                     if (!$state) {
                         $set('students', []);
                         return;
                     }
 
-                    // Ambil siswa sesuai kelas yang dipilih
                     $students = Student::where('class_room_id', $state)
                         ->orderBy('name')
-                        ->get(['id', 'name', 'nre'])
+                        ->get(['id', 'nre', 'name'])
                         ->map(fn($s) => [
                             'id' => $s->id,
                             'nre' => $s->nre,
@@ -48,51 +54,51 @@ class CreateGrade extends CreateRecord
                     $set('students', $students);
                 }),
 
-            Forms\Components\Select::make('subject_assignment_id')
-                ->label('Professor / Materia')
-                ->options(
-                    SubjectAssignment::with(['teacher', 'subject'])
-                        ->get()
-                        ->mapWithKeys(fn($s) => [
-                            $s->id => $s->teacher->name . ' - ' . $s->subject->name
-                        ])
-                )
-                ->searchable()
+            Forms\Components\Select::make('subject_id')
+                ->label('Materia')
+                ->options(Subject::orderBy('name')->pluck('name', 'id'))
                 ->required(),
+
+            Forms\Components\Select::make('teacher_id')
+                ->label('Professor')
+                ->options(Teacher::orderBy('name')->pluck('name', 'id'))
+                ->nullable(),
 
             Forms\Components\Select::make('academic_year_id')
                 ->label('Tinan Akademiku')
-                ->relationship('academicYear', 'name')
-                ->required(),
+                ->default($activeYearId)
+                ->disabled(),
 
             Forms\Components\Select::make('period_id')
                 ->label('Periodu')
-                ->relationship('period', 'name')
-                ->required(),
+                ->default($activePeriodId)
+                ->disabled(),
 
             Forms\Components\Section::make('Tabel Estudante sira')
                 ->schema([
                     Forms\Components\Repeater::make('students')
                         ->schema([
-                            Forms\Components\TextInput::make('nre')->disabled()->dehydrated(false),
-                            Forms\Components\TextInput::make('name')->disabled()->dehydrated(false),
-                            Forms\Components\TextInput::make('score')
-                                ->numeric()
-                                ->minValue(0)
-                                ->maxValue(10)
-                                ->step(0.1)
-                                ->reactive()
-                                ->afterStateUpdated(fn($state, Forms\Set $set) =>
-                                    $set('remarks', GradeResource::getRemarksByScore($state))
-                                ),
-                            Forms\Components\TextInput::make('remarks')->disabled()->dehydrated(false),
-                            Forms\Components\Hidden::make('id')->required(),
+                            Forms\Components\Grid::make(5)->schema([
+                                Forms\Components\TextInput::make('nre')->disabled()->dehydrated(false),
+                                Forms\Components\TextInput::make('name')->disabled()->dehydrated(false),
+                                Forms\Components\TextInput::make('score')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(10)
+                                    ->step(0.1)
+                                    ->reactive()
+                                    ->afterStateUpdated(fn($state, Forms\Set $set) =>
+                                        $set('remarks', GradeResource::getRemarksByScore($state))
+                                    ),
+                                Forms\Components\TextInput::make('remarks')->disabled()->dehydrated(false),
+                                Forms\Components\Hidden::make('id')->required(),
+                            ]),
                         ])
-                        ->columns(5)
                         ->addable(false)
                         ->deletable(false)
                         ->reorderable(false)
-                        ->columnSpanFull(),
+                        ->columnSpanFull()
+                        ->default([]),
                 ]),
         ];
     }
@@ -100,7 +106,8 @@ class CreateGrade extends CreateRecord
     protected function handleRecordCreation(array $data): Grade
     {
         $classRoomId = $data['class_room_id'];
-        $subjectAssignmentId = $data['subject_assignment_id'];
+        $subjectId = $data['subject_id'];
+        $teacherId = $data['teacher_id'] ?? null;
         $academicYearId = $data['academic_year_id'];
         $periodId = $data['period_id'];
         $students = $data['students'] ?? [];
@@ -115,7 +122,8 @@ class CreateGrade extends CreateRecord
                 [
                     'student_id' => $studentRow['id'],
                     'class_room_id' => $classRoomId,
-                    'subject_assignment_id' => $subjectAssignmentId,
+                    'subject_id' => $subjectId,
+                    'teacher_id' => $teacherId,
                     'academic_year_id' => $academicYearId,
                     'period_id' => $periodId,
                 ],
@@ -126,9 +134,8 @@ class CreateGrade extends CreateRecord
             );
         }
 
-        // Return first record sebagai response
         return Grade::where('class_room_id', $classRoomId)
-            ->where('subject_assignment_id', $subjectAssignmentId)
+            ->where('subject_id', $subjectId)
             ->where('academic_year_id', $academicYearId)
             ->where('period_id', $periodId)
             ->first() ?? new Grade();

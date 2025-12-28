@@ -10,11 +10,13 @@ use App\Filament\Resources\StudentResource;
 class CreateStudent extends CreateRecord
 {
     protected static string $resource = StudentResource::class;
+    protected static ?string $title = 'Kria Estudante';
     
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
     }
+
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('teacher_position_id')->constrained('teacher_positions')->onDelete('cascade');
             $table->string('nrp', 9)->unique();        // Unique teacher ID (sebelumnya NRP)
             $table->string('name', 50);                        // Full name
             $table->enum('gender', ['m', 'f'])->default('m');  // Gender: m = male, f = female

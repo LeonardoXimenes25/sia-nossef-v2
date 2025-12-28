@@ -9,11 +9,12 @@ use Filament\Resources\Pages\ListRecords;
 class ListTimetables extends ListRecords
 {
     protected static string $resource = TimetableResource::class;
+    protected static ?string $title = 'Lista Horario';
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\CreateAction::make(),
+            Actions\CreateAction::make()->label('Aumenta Dadus'),
         ];
     }
 }

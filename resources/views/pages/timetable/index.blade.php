@@ -5,7 +5,7 @@
 @section('content')
 <div class="container" style="margin-top: 100px">
     <!-- Filter -->
-    <div class="filter-section" >
+    <div class="filter-section">
         <div class="card border shadow-sm">
             <div class="card-header py-3" style="background-color: #0099ff;">
                 <h6 class="mb-0 text-white"><i class="fas fa-filter me-2"></i>Filter Orariu</h6>
@@ -56,6 +56,31 @@
                         </select>
                     </div>
 
+                    <!-- Period -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold text-primary"><i class="fas fa-chalkboard-teacher me-2"></i>Hili Periodu</label>
+                        <select class="form-select border" id="period-select">
+                            <option value="all">Períudu Hotu</option>
+                            @foreach($periods as $period)
+                                <option value="{{ $period->id }}" {{ isset($activePeriod) && $activePeriod->id == $period->id ? 'selected' : '' }}>
+                                    {{ $period->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    
+
+                    <!-- Academic Year -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold text-primary"><i class="fas fa-calendar-alt me-2"></i>Hili Academic Year</label>
+                        <select class="form-select border" id="year-select">
+                            <option value="all" selected>Academic Year Hotu</option>
+                            @foreach($academicYears as $year)
+                                <option value="{{ $year->id }}">{{ $year->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <!-- Hari -->
                     <div class="col-md-3">
                         <label class="form-label fw-semibold text-primary mb-2"><i class="fas fa-calendar-day me-2"></i>Hili Loron</label>
@@ -63,12 +88,12 @@
                             @php
                                 $days = [
                                     'all' => ['icon' => 'fas fa-list', 'text' => 'Hotu'],
-                                    'Monday' => ['icon' => 'fas fa-sun', 'text' => 'Segunda'],
-                                    'Tuesday' => ['icon' => 'fas fa-moon', 'text' => 'Tersa'],
-                                    'Wednesday' => ['icon' => 'fas fa-cloud-sun', 'text' => 'Kuarta'],
-                                    'Thursday' => ['icon' => 'fas fa-star', 'text' => 'Kinta'],
-                                    'Friday' => ['icon' => 'fas fa-pray', 'text' => 'Sexta'],
-                                    'Saturday' => ['icon' => 'fas fa-seedling', 'text' => 'Sabadu']
+                                    'Monday' => ['icon' => 'fas fa-calendar', 'text' => 'Segunda'],
+                                    'Tuesday' => ['icon' => 'fas fa-calendar', 'text' => 'Tersa'],
+                                    'Wednesday' => ['icon' => 'fas fa-calendar', 'text' => 'Kuarta'],
+                                    'Thursday' => ['icon' => 'fas fa-calendar', 'text' => 'Kinta'],
+                                    'Friday' => ['icon' => 'fas fa-calendar', 'text' => 'Sexta'],
+                                    'Saturday' => ['icon' => 'fas fa-calendar', 'text' => 'Sabadu']
                                 ];
                             @endphp
                             @foreach($days as $dayKey => $dayInfo)
@@ -86,7 +111,7 @@
     </div>
 
     <!-- Tabel Jadwal -->
-    <div class="card border shadow-sm">
+    <div class="card border shadow-sm mt-3">
         <div class="card-header py-3 d-flex justify-content-between align-items-center" style="background-color: #0099ff;">
             <h6 class="mb-0 text-white d-flex align-items-center">
                 <i class="fas fa-table me-2"></i>Orariu Materia
@@ -112,6 +137,8 @@
                             <th>Klase</th>
                             <th>Turma</th>
                             <th>Area Estudu</th>
+                            <th>Períudu</th>
+                            <th>Academic Year</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -130,14 +157,18 @@
                             data-turma="{{ optional($tt->classRoom)->turma ?? '-' }}"
                             data-major="{{ optional(optional($tt->classRoom)->major)->name ?? '-' }}"
                             data-teacher="{{ optional(optional($tt->subjectAssignment)->teacher)->name ?? '-' }}"
-                            data-day="{{ $tt->day }}">
+                            data-day="{{ $tt->day }}"
+                            data-period="{{ $tt->period_id ?? 'all' }}"
+                            data-academic-year="{{ $tt->academic_year_id ?? 'all' }}">
                             <td>{{ $dayNames[$tt->day] ?? $tt->day }}</td>
                             <td>{{ $tt->start_time }} - {{ $tt->end_time }}</td>
-                            <td>{{ optional(optional($tt->subjectAssignment)->subject)->name ?? '-' }}</td>
+                            <td>{{ optional($tt->subject)->name ?? '-' }}</td>
                             <td>{{ optional(optional($tt->subjectAssignment)->teacher)->name ?? '-' }}</td>
                             <td>{{ optional($tt->classRoom)->level ?? '-' }}</td>
                             <td>{{ optional($tt->classRoom)->turma ?? '-' }}</td>
                             <td>{{ optional(optional($tt->classRoom)->major)->name ?? '-' }}</td>
+                            <td>{{ optional($tt->period)->name ?? '-' }}</td>
+                            <td>{{ optional($tt->academicYear)->name ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -162,6 +193,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const turmaSelect = document.getElementById('turma-select');
     const teacherSelect = document.getElementById('teacher-select');
     const majorSelect = document.getElementById('major-select');
+    const periodSelect = document.getElementById('period-select');
+    const yearSelect = document.getElementById('year-select');
     const dayTabs = document.querySelectorAll('.day-tab');
     const rows = document.querySelectorAll('#schedule-table tbody tr');
     const scheduleCount = document.getElementById('schedule-count');
@@ -173,11 +206,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedTurma = turmaSelect.value;
         const selectedTeacher = teacherSelect.value;
         const selectedMajor = majorSelect.value;
+        const selectedPeriod = periodSelect.value;
+        const selectedYear = yearSelect.value;
         const activeDay = document.querySelector('.day-tab.active').dataset.day;
         let visible = 0;
 
         const dayOrder = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const sortedRows = [];
+        const visibleRows = [];
 
         rows.forEach(row => {
             const matches = 
@@ -185,24 +220,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 (selectedTurma === 'all' || row.dataset.turma === selectedTurma) &&
                 (selectedTeacher === 'all' || row.dataset.teacher === selectedTeacher) &&
                 (selectedMajor === 'all' || row.dataset.major === selectedMajor) &&
+                (selectedPeriod === 'all' || row.dataset.period == selectedPeriod) &&
+                (selectedYear === 'all' || row.dataset.academicYear == selectedYear) &&
                 (activeDay === 'all' || row.dataset.day === activeDay);
 
+            if (matches) {
+                visibleRows.push(row);
+                visible++;
+            }
             row.style.display = matches ? '' : 'none';
-            if (matches) sortedRows.push(row);
-            if (matches) visible++;
         });
 
-        sortedRows.sort((a, b) => dayOrder.indexOf(a.dataset.day) - dayOrder.indexOf(b.dataset.day));
+        visibleRows.sort((a, b) => dayOrder.indexOf(a.dataset.day) - dayOrder.indexOf(b.dataset.day));
         const tbody = scheduleTable.querySelector('tbody');
-        tbody.innerHTML = ''; 
-        sortedRows.forEach(row => tbody.appendChild(row));
+        
+        visibleRows.forEach(row => {
+            tbody.appendChild(row);
+        });
 
         scheduleCount.textContent = `${visible} Orariu`;
         scheduleTable.style.display = visible ? 'table' : 'none';
         emptyState.style.display = visible ? 'none' : 'block';
     }
 
-    [classSelect, turmaSelect, teacherSelect, majorSelect].forEach(el => el.addEventListener('change', applyFilters));
+    [classSelect, turmaSelect, teacherSelect, majorSelect, periodSelect, yearSelect].forEach(el => el.addEventListener('change', applyFilters));
     dayTabs.forEach(tab => tab.addEventListener('click', () => {
         dayTabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
@@ -210,7 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }));
 
     window.resetFilters = () => {
-        classSelect.value = turmaSelect.value = teacherSelect.value = majorSelect.value = 'all';
+        classSelect.value = turmaSelect.value = teacherSelect.value = majorSelect.value = periodSelect.value = yearSelect.value = 'all';
         dayTabs.forEach(t => t.classList.remove('active'));
         document.querySelector('.day-tab[data-day="all"]').classList.add('active');
         applyFilters();
@@ -219,19 +260,18 @@ document.addEventListener('DOMContentLoaded', function() {
     applyFilters();
 
     document.getElementById('download-btn').addEventListener('click', function() {
-    const query = new URLSearchParams({
-        class: classSelect.value,
-        turma: turmaSelect.value,
-        teacher: teacherSelect.value,
-        major: majorSelect.value,
-        day: document.querySelector('.day-tab.active').dataset.day
-    }).toString();
+        const query = new URLSearchParams({
+            class: classSelect.value,
+            turma: turmaSelect.value,
+            teacher: teacherSelect.value,
+            major: majorSelect.value,
+            period: periodSelect.value,
+            year: yearSelect.value,
+            day: document.querySelector('.day-tab.active').dataset.day
+        }).toString();
 
-    // Arahkan ke route /horariu/download dengan query params
-    window.location.href = `/horariu/download?${query}`;
-});
-
-
+        window.location.href = `/horariu/download?${query}`;
+    });
 });
 </script>
 @endsection

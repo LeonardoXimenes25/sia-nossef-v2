@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use App\Models\Subject;
+use App\Models\TeacherPosition;
 use App\Models\SubjectAssignment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +16,7 @@ class Teacher extends Model
     // Mass assignable fields sesuai migration terbaru
     protected $fillable = [
         'user_id',
+        'teacher_position_id',
         'nrp',
         'name',
         'gender',
@@ -37,23 +39,29 @@ class Teacher extends Model
     }
 
     /**
-     * Optionally, relationship shortcut to subjects through assignments
+     * Relationship to subjects through SubjectAssignment and pivot table
      */
     public function subjects()
     {
         return $this->hasManyThrough(
             Subject::class,
             SubjectAssignment::class,
-            'nrp',   // FK di subject_assignments
-            'id',           // FK di subjects
-            'id',           // PK di teachers
-            'subject_id'    // PK di subject_assignments
-        );
+            'teacher_id',                        // FK in subject_assignments pointing to teachers
+            'id',                                // PK in subjects
+            'id',                                // PK in teachers
+        )
+        ->distinct()
+        ->select('subjects.*');
     }
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function teacherPosition()
+    {
+        return $this->belongsTo(TeacherPosition::class);
     }
 
 }

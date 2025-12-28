@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
 @section('title', 'ESG. Nossef | Konaba-Ami')
-    
+
+@section('content')
 <section id="about" class="about section mt-5">
 
     <!-- Section Title -->
@@ -10,12 +11,11 @@
     </div>
     <!-- End Section Title -->
 
-      <div class="container" data-aos="fade-up" data-aos-delay="100">
-
+    <div class="container" data-aos="fade-up" data-aos-delay="100">
         <div class="row">
-          <div class="col-lg-6" data-aos="fade-right" data-aos-delay="200">
+            <div class="col-lg-6" data-aos="fade-right" data-aos-delay="200">
             <div class="content">
-              <p>NOSSEF (Nossa Senhora da Consolacao) School in Railaco, Timor-Leste, started small and grew into a thriving secondary school, supported by partners like St Canice's parish for over 20 years, though the exact first building year isn't specified, it's a long-standing project growing into a significant school for the region. 
+            <p>NOSSEF (Nossa Senhora da Consolacao) School in Railaco, Timor-Leste, started small and grew into a thriving secondary school, supported by partners like St Canice's parish for over 20 years, though the exact first building year isn't specified, it's a long-standing project growing into a significant school for the region. 
               To find the specific year the first building started:
               Check the Jesuit Mission Australia website or their partners.
               Search specifically for "NOSSEF School Railaco history" or "St Canice Railaco first building year".</p>
@@ -62,7 +62,10 @@
             </div>
           </div>
         </div>
-
       </div>
+</section><!-- /About Section -->
 
-    </section><!-- /About Section -->
+<section>
+    @include('pages.school-structure', ['teachers' => $teachers])
+</section>
+@endsection

@@ -10,6 +10,7 @@ use App\Filament\Resources\TeacherResource;
 class CreateTeacher extends CreateRecord
 {
     protected static string $resource = TeacherResource::class;
+    protected static ?string $title = 'Kria Mestre';
     
     protected function getRedirectUrl(): string
     {

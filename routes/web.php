@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\AboutController;
 use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
@@ -13,9 +14,7 @@ Route::get('/', function () {
 
 Route::get('/', [StatsController::class, 'index'])->name('home');
 
-Route::get('/konaba-ami', function () {
-    return view('pages.about');
-})->name('about');
+Route::get('/konaba-ami', [AboutController::class, 'index'])->name('about');
 
 Route::get('/horariu', [ScheduleController::class, 'index'])->name('schedule');
 Route::get('/horariu/download', [ScheduleController::class, 'download'])->name('schedule.download');
