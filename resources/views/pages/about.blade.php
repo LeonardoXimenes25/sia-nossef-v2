@@ -49,16 +49,7 @@
 
           <div class="col-lg-6" data-aos="fade-left" data-aos-delay="200">
             <div class="image-container">
-              <img src="assets/img/about/about-square-8.webp" alt="About Us" class="img-fluid">
-              <div class="image-overlay">
-                <div class="overlay-content">
-                  <i class="bi bi-award"></i>
-                  <div class="overlay-text">
-                    <h4>Award Winning</h4>
-                    <p>Excellence in Service</p>
-                  </div>
-                </div>
-              </div>
+              <img src="{{asset('assets/img/nossef-picture.webp')}}" alt="About Us" class="img-fluid">
             </div>
           </div>
         </div>

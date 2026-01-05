@@ -10,6 +10,9 @@ use Filament\Forms\Components\Component;
 use Filament\Pages\Auth\Login;
 use Filament\Notifications\Notification;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
+
 
 class CustomLogin extends Login
 {
@@ -18,23 +21,46 @@ class CustomLogin extends Login
         return $form->schema([
             TextInput::make('login_id')
                 ->label('Numeru Identifikasaun')
+                ->placeholder('Prenxe ita nia numeru identifikasaun')
                 ->required()
                 ->autocomplete('off')
                 ->extraInputAttributes([
-                    'inputmode' => 'numeric',   // keyboard angka di mobile
-                    'pattern' => '[0-9]*',       // hanya angka
-                    'onwheel' => 'this.blur()',  // cegah scroll naik-turun
+                    'inputmode' => 'numeric',           // keyboard angka (mobile)
+                    'pattern' => '[0-9]*',               // hint angka
+                    'onwheel' => 'this.blur()',          // cegah scroll
+                    'oninput' => "this.value = this.value.replace(/[^0-9]/g, '')",
                 ])
-                ->rule('digits_between:1,20'),// validasi server
+                ->rules([
+                    'required',
+                    'digits_between:1,20',
+                ]),
+
 
             TextInput::make('password')
                 ->label('Password')
+                ->placeholder('Prenxe ita nia password')
                 ->password()
                 ->required()
-                ->autocomplete(),
+                ->autocomplete('off'),
         ]);
     
     }
+
+    public function getHeading(): string | Htmlable
+{
+    return new HtmlString(
+        '<div class="text-center mb-4">
+            <img 
+                src="' . asset('assets/img/nossef-logo.png') . '" 
+                alt="Logo"
+                style="height:80px; margin:0 auto;"
+            >
+            <div style="margin-top:10px; font-size:1.25rem; font-weight:700;">
+                Login
+            </div>
+        </div>'
+    );
+}
 
     protected function getCredentialsFromFormData(array $data): array
     {
