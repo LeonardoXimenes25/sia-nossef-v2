@@ -18,4 +18,14 @@ class TeacherPosition extends Model
     public function teacher(){
         return $this->hasMany(Teacher::class);
     }
+
+    protected static function booted()
+    {
+        static::creating(function ($position) {
+            if (!$position->level) {
+                $position->level = TeacherPosition::count() + 1;
+            }
+        });
+    }
+
 }

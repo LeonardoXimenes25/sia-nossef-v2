@@ -64,7 +64,8 @@ class SubjectResource extends Resource
                     ->color('success'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->label('Edita'),
+                Tables\Actions\DeleteAction::make()->label('Apaga'),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),

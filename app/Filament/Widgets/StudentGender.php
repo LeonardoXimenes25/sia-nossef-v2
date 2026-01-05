@@ -9,6 +9,8 @@ class StudentGender extends ChartWidget
 {
     protected static ?string $heading = 'Distribuisaun Estudante por Jenru';
     protected static ?string $maxHeight = '220px';
+    protected static ?int $sort = 1; // tampil setelah LatestTimetables
+
 
     protected function getData(): array
     {

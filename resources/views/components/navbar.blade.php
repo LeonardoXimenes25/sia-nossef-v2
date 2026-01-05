@@ -4,6 +4,7 @@
 
             <!-- Logo kiri -->
             <a href="{{ route('home') }}" class="logo d-flex align-items-center">
+                <img src="{{asset('assets/img/nossef-logo.png')}}" alt="Logo ESG Nossef">
                 <h1 class="sitename mb-0">ESG. NOSSEF</h1>
             </a>
 

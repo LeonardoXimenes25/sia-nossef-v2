@@ -10,7 +10,7 @@ use App\Filament\Resources\AcademicYearResource;
 class EditAcademicYear extends EditRecord
 {
     protected static string $resource = AcademicYearResource::class;
-    protected static ?string $title = 'Edita Ano Letivo';
+    protected static ?string $title = 'Edita Tinan Letivo';
 
     protected function getHeaderActions(): array
     {

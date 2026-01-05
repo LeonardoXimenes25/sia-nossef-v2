@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Lista Professores')
+
 @section('content')
 <!-- Team Section -->
 <section id="team" class="team section mt-4">

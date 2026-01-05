@@ -18,19 +18,7 @@
         </div>
         <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
           <div class="hero-image">
-            <img src="assets/img/about/about-8.webp" alt="Corporate Business" class="img-fluid">
-            <div class="floating-card" data-aos="fade-up" data-aos-delay="300">
-              <div class="card-content">
-                <div class="metric">
-                  <span class="number">150+</span>
-                  <span class="label">Successful Projects</span>
-                </div>
-                <div class="metric">
-                  <span class="number">98%</span>
-                  <span class="label">Client Satisfaction</span>
-                </div>
-              </div>
-            </div>
+            <img src="{{asset('assets/img/nossef-picture.webp')}}" alt="#" class="img-fluid shadow">
           </div>
         </div>
       </div>

@@ -30,4 +30,22 @@ class Period extends Model
     {
         return $this->hasMany(Timetable::class);
     }
+
+    public function getActiveStatusAttribute(): bool
+    {
+    $today = now();
+
+    // tetap true kalau toggle manual aktif
+    if ($this->is_active) {
+        return true;
+    }
+
+    // otomatis aktif kalau tanggal sekarang masuk periode
+    if ($this->start_date && $this->end_date) {
+        return $today->between($this->start_date, $this->end_date);
+    }
+
+    return false;
+    }
+
 }

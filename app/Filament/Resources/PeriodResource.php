@@ -60,7 +60,7 @@ class PeriodResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('order')
-                    ->label('Ordem')
+                    ->label('Nu.')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('academicYear.name')
@@ -73,7 +73,8 @@ class PeriodResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\IconColumn::make('is_active')
+                // Gunakan accessor active_status
+                Tables\Columns\IconColumn::make('active_status')
                     ->label('Aktivu')
                     ->boolean(),
 
@@ -86,7 +87,8 @@ class PeriodResource extends Resource
                     ->date('d M Y'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()->label('Edita'),
+                Tables\Actions\DeleteAction::make()->label('Apaga'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

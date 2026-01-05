@@ -10,6 +10,8 @@ class StudentByClass extends ChartWidget
 {
     protected static ?string $heading = 'Total Estudante Kada Klasse';
     protected static ?string $maxHeight = '400px'; // ukuran chart
+    protected static ?int $sort = 1; // tampil setelah LatestTimetables
+
 
     protected function getData(): array
 {

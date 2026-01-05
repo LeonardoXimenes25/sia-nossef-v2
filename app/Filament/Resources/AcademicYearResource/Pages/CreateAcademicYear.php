@@ -10,7 +10,7 @@ use App\Filament\Resources\AcademicYearResource;
 class CreateAcademicYear extends CreateRecord
 {
     protected static string $resource = AcademicYearResource::class;
-    protected static ?string $title = 'Kria Ano Letivo';
+    protected static ?string $title = 'Kria Tinan Letivo';
     
     protected function getRedirectUrl(): string
     {

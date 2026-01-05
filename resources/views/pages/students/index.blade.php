@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'ESG. NOSSEF | Lista Professores')
+
 @section('content')
 <div class="container mt-4">
 
@@ -63,25 +65,32 @@
 
     <!-- Filters -->
     <div class="row mb-3">
-        <div class="col-md-3 mb-2">
+        <div class="col-md-2 mb-2">
             <input type="text" id="searchInput" class="form-control" placeholder="Search students...">
         </div>
-        <div class="col-md-3 mb-2">
+        <div class="col-md-2 mb-2">
             <select id="classFilter" class="form-select">
                 <option value="">All Classes</option>
-                @foreach($students->pluck('classRoom.level')->unique() as $class)
-                    <option value="{{ $class }}">{{ $class ?? 'Not Assigned' }}</option>
+                @foreach($classOptions as $class)
+                    <option value="{{ $class }}">{{ $class }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-md-2 mb-2">
+            <select id="turmaFilter" class="form-select">
+                <option value="">All Turma</option>
+                @foreach($turmaOptions as $turma)
+                    <option value="{{ $turma }}">{{ $turma }}</option>
                 @endforeach
             </select>
         </div>
         <div class="col-md-3 mb-2">
             <select id="majorFilter" class="form-select">
-    <option value="">All Majors</option>
-    @foreach(\App\Models\Major::all() as $major)
-        <option value="{{ $major->name }}">{{ $major->name }}</option>
-    @endforeach
-</select>
-
+                <option value="">All Majors</option>
+                @foreach($majorOptions as $major)
+                    <option value="{{ $major }}">{{ $major }}</option>
+                @endforeach
+            </select>
         </div>
         <div class="col-md-3 mb-2">
             <select id="genderFilter" class="form-select">
@@ -104,6 +113,7 @@
                             <th>Name</th>
                             <th>Gender</th>
                             <th>Class</th>
+                            <th>Turma</th>
                             <th>Major</th>
                         </tr>
                     </thead>
@@ -115,11 +125,12 @@
                                 <td>{{ $student->name }}</td>
                                 <td>{{ $student->sex == 'm' ? 'Mane' : 'Feto' }}</td>
                                 <td>{{ $student->classRoom->level ?? '-' }}</td>
-                                <td>{{ $student->major->name ?? '-' }}</td>
+                                <td>{{ $student->classRoom->turma ?? '-' }}</td>
+                                <td>{{ $student->classRoom->major->name ?? '-' }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4">No students found.</td>
+                                <td colspan="7" class="text-center py-4">No students found.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -138,6 +149,7 @@
 <script>
 const searchInput = document.getElementById('searchInput');
 const classFilter = document.getElementById('classFilter');
+const turmaFilter = document.getElementById('turmaFilter');
 const majorFilter = document.getElementById('majorFilter');
 const genderFilter = document.getElementById('genderFilter');
 
@@ -145,6 +157,7 @@ function loadStudents(page = 1){
     const params = {
         search: searchInput.value,
         class: classFilter.value,
+        turma: turmaFilter.value,
         major: majorFilter.value,
         gender: genderFilter.value,
         page: page
@@ -177,7 +190,7 @@ function loadStudents(page = 1){
     .catch(err=>console.error(err));
 }
 
-[searchInput,classFilter,majorFilter,genderFilter].forEach(el=>{
+[searchInput,classFilter,turmaFilter,majorFilter,genderFilter].forEach(el=>{
     el.addEventListener('input', loadStudents);
     el.addEventListener('change', loadStudents);
 });

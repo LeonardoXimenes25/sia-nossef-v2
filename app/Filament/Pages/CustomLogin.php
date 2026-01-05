@@ -19,7 +19,14 @@ class CustomLogin extends Login
             TextInput::make('login_id')
                 ->label('Numeru Identifikasaun')
                 ->required()
-                ->autocomplete(),
+                ->autocomplete('off')
+                ->extraInputAttributes([
+                    'inputmode' => 'numeric',   // keyboard angka di mobile
+                    'pattern' => '[0-9]*',       // hanya angka
+                    'onwheel' => 'this.blur()',  // cegah scroll naik-turun
+                ])
+                ->rule('digits_between:1,20'),// validasi server
+
             TextInput::make('password')
                 ->label('Password')
                 ->password()

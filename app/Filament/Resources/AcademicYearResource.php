@@ -19,7 +19,7 @@ class AcademicYearResource extends Resource
 
     protected static ?string $navigationGroup = 'Managementu Akademiku';
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationLabel = 'Ano Letivo';
+    protected static ?string $navigationLabel = 'Tinan Letivo';
     
 
 

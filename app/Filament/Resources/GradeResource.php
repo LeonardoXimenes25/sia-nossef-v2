@@ -263,13 +263,13 @@ class GradeResource extends Resource
 
         $formFields[] = Section::make('Tabel Estudante sira')
             ->schema([
-                Forms\Components\Repeater::make('students')
+                Forms\Components\Repeater::make('students')->label('Lista Estudante')
                     ->schema([
                         Grid::make(5)->schema([
-                            TextInput::make('nre')->disabled()->dehydrated(false),
-                            TextInput::make('name')->disabled()->dehydrated(false),
+                            TextInput::make('nre')->disabled()->dehydrated(false)->label('NRE'),
+                            TextInput::make('name')->disabled()->dehydrated(false)->label('Naran Estudante'),
 
-                            TextInput::make('score')
+                            TextInput::make('score')->label('Valor')
                                 ->numeric()
                                 ->minValue(0)
                                 ->maxValue(10)
@@ -281,6 +281,7 @@ class GradeResource extends Resource
                                 ),
 
                             TextInput::make('remarks')
+                                ->label('Observasaun')
                                 ->disabled()
                                 ->dehydrated(false),
 

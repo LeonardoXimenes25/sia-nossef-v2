@@ -90,15 +90,21 @@
 
 <body>
 
+    <!-- Ambil data Mestre dan Diretor dari Filament Shield / Spatie Roles -->
+    @php
+        $mestre = \App\Models\User::role('mestre')->first();
+        $diretor = \App\Models\User::role('diretor')->first();
+    @endphp
+
     <!-- ===== HEADER ===== -->
     <div class="header">
         <table class="header-table">
             <tr>
                 <td width="90">
-                    <img src="#" class="logo">
+                    <img src="{{ asset('assets/img/nossef-logo.png') }}" class="logo">
                 </td>
                 <td class="school-info">
-                    <div class="school-name">Nama Sekolah Anda</div>
+                    <div class="school-name">ESG. NOSSEF</div>
                     <div class="school-detail">
                         Alamat Sekolah, Kota, Provinsi<br>
                         Telp / HP: 08xxxxxxxxxx
@@ -134,6 +140,29 @@
             @endforeach
         </tbody>
     </table>
+
+    <!-- ===== TANDA TANGAN ===== -->
+    <div style="width: 100%; margin-top: 150px;"> <!-- Jarak jauh dari tabel -->
+        <table style="width: 100%; border: none;">
+            <tr>
+                <!-- Kiri untuk Mestre -->
+                <td style="width: 50%; text-align: left; vertical-align: top;">
+                    <div class="font-bold">Mestre</div>
+                    <div style="margin-top: 80px; border-top: 1px solid #000; width: 200px;">
+                        {{ $mestre->name ?? '________________' }}
+                    </div>
+                </td>
+
+                <!-- Kanan untuk Diretor -->
+                <td style="width: 50%; text-align: right; vertical-align: top;">
+                    <div class="font-bold">Diretor</div>
+                    <div style="margin-top: 80px; border-top: 1px solid #000; width: 200px; display: inline-block;">
+                        {{ $diretor->name ?? '________________' }}
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
 </body>
 </html>
