@@ -119,20 +119,62 @@ class TimetableResource extends Resource
 
             Forms\Components\Select::make('subject_id')
                 ->label('Disiplina')
-                ->options(Subject::pluck('name', 'id')->toArray())
-                ->searchable()
-                ->required(),
+                ->options(function (callable $get, $record) {
+                    // Jika edit, pastikan tetap menampilkan mata pelajaran yang sudah tersimpan
+                    if ($record) {
+                        return [$record->subject_id => $record->subject->name];
+                    }
+
+                    $subjectAssignmentId = $get('subject_assignment_id');
+                    if (!$subjectAssignmentId) {
+                        return [];
+                    }
+
+                    $subjectAssignment = SubjectAssignment::with('subjects')->find($subjectAssignmentId);
+
+                    // Ambil semua mata pelajaran guru yang dipilih
+                    if ($subjectAssignment) {
+                        return $subjectAssignment->subjects
+                            ->pluck('name', 'id')
+                            ->toArray();
+                    }
+
+                    return [];
+                })
+                ->required()
+                ->reactive()
+                ->disabled(fn($get) => $get('subject_assignment_id') === null),
 
             Forms\Components\Select::make('class_room_id')
-                ->label('Klasse / Turma')
-                ->options(ClassRoom::with('major')
-                    ->get()
-                    ->mapWithKeys(fn($cr) => [
-                        $cr->id => "{$cr->level} {$cr->turma}" . ($cr->major ? " ({$cr->major->name})" : '')
-                    ])
-                    ->toArray())
-                ->searchable()
-                ->required(),
+    ->label('Klasse / Turma')
+    ->options(function (callable $get, $record) {
+        // Jika edit, tampilkan class yang sudah tersimpan
+        if ($record) {
+            $classRoom = $record->classRoom;
+            return $classRoom ? [$classRoom->id => "{$classRoom->level} {$classRoom->turma}" . ($classRoom->major ? " ({$classRoom->major->name})" : '')] : [];
+        }
+
+        $subjectAssignmentId = $get('subject_assignment_id');
+        if (!$subjectAssignmentId) {
+            return [];
+        }
+
+        $subjectAssignment = SubjectAssignment::with('classRooms.major')->find($subjectAssignmentId);
+        if ($subjectAssignment) {
+            return $subjectAssignment->classRooms
+                ->mapWithKeys(fn($cr) => [
+                    $cr->id => "{$cr->level} {$cr->turma}" . ($cr->major ? " ({$cr->major->name})" : '')
+                ])
+                ->toArray();
+        }
+
+        return [];
+    })
+    ->required()
+    ->reactive()
+    ->disabled(fn($get) => $get('subject_assignment_id') === null)
+    ->searchable(),
+
 
             Forms\Components\Select::make('day')
                 ->label('Loron')

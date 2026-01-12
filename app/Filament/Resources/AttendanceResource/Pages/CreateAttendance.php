@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 class CreateAttendance extends CreateRecord
 {
     protected static string $resource = AttendanceResource::class;
+    protected static ?string $title = 'Kria Tinan Letivo';
 
     /**
      * Override handleRecordCreation untuk menyimpan multiple records

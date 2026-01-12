@@ -24,8 +24,8 @@ class AttendanceResource extends Resource
     protected static ?string $model = Attendance::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
-    protected static ?string $navigationLabel = 'Absensi';
-    protected static ?string $pluralModelLabel = 'Absensi';
+    protected static ?string $navigationLabel = 'Absensia';
+    protected static ?string $pluralModelLabel = 'Absensia';
 
     /* =========================
      * FORM
