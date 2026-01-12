@@ -70,7 +70,7 @@
         </div>
         <div class="col-md-2 mb-2">
             <select id="classFilter" class="form-select">
-                <option value="">Klasse</option>
+                <option value="">Klasse hotu</option>
                 @foreach($classOptions as $class)
                     <option value="{{ $class }}">{{ $class }}</option>
                 @endforeach
@@ -110,7 +110,7 @@
                         <tr>
                             <th>Nu</th>
                             <th>NRE</th>
-                            <th>Name</th>
+                            <th>Naran Estudante</th>
                             <th>Jeneru</th>
                             <th>Klasse</th>
                             <th>Turma</th>
