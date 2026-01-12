@@ -167,6 +167,20 @@ class TeacherResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $user = auth()->user();
+
+        // Jika login sebagai mestre → hanya lihat data sendiri
+        if ($user->hasRole('mestre')) {
+            return parent::getEloquentQuery()
+                ->where('user_id', $user->id);
+        }
+
+    // Role lain (admin, dll) → lihat semua
+    return parent::getEloquentQuery();
+    }
+
     public static function getRelations(): array
     {
         return [];
