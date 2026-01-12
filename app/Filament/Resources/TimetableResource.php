@@ -159,8 +159,8 @@ class TimetableResource extends Resource
                 Tables\Columns\TextColumn::make('end_time')->label('Oras Ramata'),
                 Tables\Columns\TextColumn::make('academicYear.name')->label('Tinan Akademiku'),
                 Tables\Columns\TextColumn::make('period.name')->label('Periodu'),
-                Tables\Columns\TextColumn::make('subjectAssignment.is_active')->label('Status Profesor')
-                    ->getStateUsing(fn($record) => $record->subjectAssignment->is_active ? 'Aktivu' : 'Non-Aktif'),
+                // Tables\Columns\TextColumn::make('subjectAssignment.is_active')->label('Status Profesor')
+                //     ->getStateUsing(fn($record) => $record->subjectAssignment->is_active ? 'Aktivu' : 'Non-Aktif'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()->label('Edita'),

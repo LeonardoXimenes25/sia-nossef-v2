@@ -56,6 +56,11 @@
       </div>
 </section><!-- /About Section -->
 
+{{-- gallery Section --}}
+<section>
+  @include('pages.school-gallery')
+</section>
+
 <section>
     @include('pages.school-structure', ['teachers' => $teachers])
 </section>

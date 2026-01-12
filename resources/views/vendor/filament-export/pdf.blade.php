@@ -101,13 +101,13 @@
         <table class="header-table">
             <tr>
                 <td width="90">
-                    <img src="{{ asset('assets/img/nossef-logo.png') }}" class="logo">
+                    <img src="{{ asset('assets/img/nossef-logo.png')  }}" class="logo">
                 </td>
                 <td class="school-info">
                     <div class="school-name">ESG. NOSSEF</div>
                     <div class="school-detail">
-                        Alamat Sekolah, Kota, Provinsi<br>
-                        Telp / HP: 08xxxxxxxxxx
+                        Alamat Sekolah, Kota, Ermera<br>
+                        Telf / WA: +670 1234 5678
                     </div>
                 </td>
             </tr>

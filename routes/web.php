@@ -7,6 +7,7 @@ use App\Http\Controllers\StatsController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\AttendancePrintController;
 
 Route::get('/', function () {
     return view('pages.home.hero');
@@ -28,6 +29,10 @@ Route::get('/portal-informasaun/{slug}', [NewsController::class, 'show'])->name(
 
 Route::get('/news/category/{slug}', [App\Http\Controllers\NewsController::class, 'category'])->name('news.category');
 Route::get('/news/tag/{slug}', [App\Http\Controllers\NewsController::class, 'tag'])->name('news.tag');
+
+// print
+Route::get('/attendance/print/blank', [AttendancePrintController::class, 'printBlank'])
+    ->name('attendance.print.blank');
 
 
 

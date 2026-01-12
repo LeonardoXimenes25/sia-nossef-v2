@@ -118,12 +118,11 @@ class TeacherResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('id')->label('Nu')->sortable(),
-                TextColumn::make('teacherPosition.name')->label('Posisaun Professor')->sortable(),
-                TextColumn::make('nrp')->label('ID Professor')->sortable(),
                 TextColumn::make('name')->label('Naran Professor')->sortable(),
-                TextColumn::make('gender')->label('Sexu'),
+                TextColumn::make('gender')->label('Sexu')->sortable()->formatStateUsing(fn ($state) => $state === 'm' ? 'Mane' : 'Feto'),
+                TextColumn::make('birth_date')->label('Data Moris')->date('d-m-y'),
                 TextColumn::make('birth_place')->label('Fatin Moris'),
-                TextColumn::make('birth_date')->label('Data Moris')->date(),
+                TextColumn::make('teacherPosition.name')->label('Posisaun Professor')->sortable(),
                 TextColumn::make('educational_qualification')->label('Abilitasaun Literaria'),
                 BadgeColumn::make('Estatuta')
                     ->label('Estatuta')
@@ -139,8 +138,9 @@ class TeacherResource extends Resource
                         'primary' => 'ft',   // biru
                         'warning' => 'pt',   // kuning
                     ]),
-                TextColumn::make('employment_start_date')->label('Start Date')->date(),
-                TextColumn::make('phone')->label('Phone'),
+                TextColumn::make('employment_start_date')->label('Data Servisu')->date('d-m-y'),
+                TextColumn::make('phone')->label('Nu. Telemovel'),
+                TextColumn::make('nrp')->label('ID Professor')->sortable(),
             ])
             ->filters([
                 SelectFilter::make('employment_status')

@@ -21,7 +21,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="card-title text-muted mb-1">Total Students</h6>
+                        <h6 class="card-title text-muted mb-1">Total Estudante</h6>
                         <h3 class="fw-bold text-primary" id="totalStudents">{{ $totalStudents }}</h3>
                     </div>
                     <i class="fas fa-users fa-2x text-primary opacity-25"></i>
@@ -32,7 +32,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="card-title text-muted mb-1">Male Students</h6>
+                        <h6 class="card-title text-muted mb-1">Total Estudante Mane</h6>
                         <h3 class="fw-bold text-info" id="maleStudents">{{ $maleStudents }}</h3>
                     </div>
                     <i class="fas fa-male fa-2x text-info opacity-25"></i>
@@ -43,7 +43,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="card-title text-muted mb-1">Female Students</h6>
+                        <h6 class="card-title text-muted mb-1">Total Estudante Feto</h6>
                         <h3 class="fw-bold text-pink" id="femaleStudents">{{ $femaleStudents }}</h3>
                     </div>
                     <i class="fas fa-female fa-2x text-pink opacity-25"></i>
@@ -54,7 +54,7 @@
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="card-title text-muted mb-1">Classes</h6>
+                        <h6 class="card-title text-muted mb-1">Klasse</h6>
                         <h3 class="fw-bold text-success" id="classes">{{ $classes }}</h3>
                     </div>
                     <i class="fas fa-school fa-2x text-success opacity-25"></i>
@@ -66,11 +66,11 @@
     <!-- Filters -->
     <div class="row mb-3">
         <div class="col-md-2 mb-2">
-            <input type="text" id="searchInput" class="form-control" placeholder="Search students...">
+            <input type="text" id="searchInput" class="form-control" placeholder="Buka estudante...">
         </div>
         <div class="col-md-2 mb-2">
             <select id="classFilter" class="form-select">
-                <option value="">All Classes</option>
+                <option value="">Klasse</option>
                 @foreach($classOptions as $class)
                     <option value="{{ $class }}">{{ $class }}</option>
                 @endforeach
@@ -78,7 +78,7 @@
         </div>
         <div class="col-md-2 mb-2">
             <select id="turmaFilter" class="form-select">
-                <option value="">All Turma</option>
+                <option value="">Turma Hotu</option>
                 @foreach($turmaOptions as $turma)
                     <option value="{{ $turma }}">{{ $turma }}</option>
                 @endforeach
@@ -86,7 +86,7 @@
         </div>
         <div class="col-md-3 mb-2">
             <select id="majorFilter" class="form-select">
-                <option value="">All Majors</option>
+                <option value="">Area Estudu hotu</option>
                 @foreach($majorOptions as $major)
                     <option value="{{ $major }}">{{ $major }}</option>
                 @endforeach
@@ -94,7 +94,7 @@
         </div>
         <div class="col-md-3 mb-2">
             <select id="genderFilter" class="form-select">
-                <option value="">All Gender</option>
+                <option value="">Jeneru hotu</option>
                 <option value="m">Mane</option>
                 <option value="f">Feto</option>
             </select>
@@ -111,10 +111,10 @@
                             <th>Nu</th>
                             <th>NRE</th>
                             <th>Name</th>
-                            <th>Gender</th>
-                            <th>Class</th>
+                            <th>Jeneru</th>
+                            <th>Klasse</th>
                             <th>Turma</th>
-                            <th>Major</th>
+                            <th>Area Estudu</th>
                         </tr>
                     </thead>
                     <tbody id="studentsBody">
@@ -130,14 +130,14 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-4">No students found.</td>
+                                <td colspan="7" class="text-center py-4">dadus mamuk.</td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
             <div class="card-footer bg-white py-3 border-top d-flex justify-content-between align-items-center" id="paginationLinks">
-                <div>Showing {{ $students->count() }} of {{ $students->total() }} students</div>
+                <div>Showing {{ $students->count() }} of {{ $students->total() }} estudante</div>
                 <div>{{ $students->links('pagination::bootstrap-5') }}</div>
             </div>
         </div>
