@@ -104,9 +104,9 @@
                     <img src="{{ public_path('assets/img/nossef-logo.png')  }}" class="logo">
                 </td>
                 <td class="school-info">
-                    <div class="school-name">ESG. NOSSEF</div>
+                    <div class="school-name">Eskola Secundaria Catolica Nossa Senhora de Fatima (NOSSEF) </div>
                     <div class="school-detail">
-                        Alamat Sekolah, Kota, Ermera<br>
+                        Enderesu: Railaco, Ermera, Timor Leste<br>
                         Telf / WA: +670 1234 5678
                     </div>
                 </td>
