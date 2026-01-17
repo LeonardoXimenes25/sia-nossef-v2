@@ -107,7 +107,7 @@
                     <div class="school-name">Eskola Secundaria Catolica Nossa Senhora de Fatima (NOSSEF) </div>
                     <div class="school-detail">
                         Enderesu: Railaco, Ermera, Timor Leste<br>
-                        Telf / WA: +670 1234 5678
+                        Nu. Telfone: +670 
                     </div>
                 </td>
             </tr>

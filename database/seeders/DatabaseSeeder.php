@@ -9,6 +9,7 @@ use Database\Seeders\MajorSeeder;
 use Database\Seeders\PeriodSeeder;
 use Database\Seeders\ClassRoomSeeder;
 use Database\Seeders\AcademicYearSeeder;
+use Database\Seeders\TeacherPositionSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,6 +23,7 @@ class DatabaseSeeder extends Seeder
             AcademicYearSeeder::class,
             PeriodSeeder::class,
             ClassRoomSeeder::class,
+            TeacherPositionSeeder::class,
         ]);
 
         User::factory()->create([
