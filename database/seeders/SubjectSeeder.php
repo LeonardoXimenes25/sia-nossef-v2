@@ -108,5 +108,6 @@ class SubjectSeeder extends Seeder
         $temas = Subject::create([
             'name' => 'Temas Literaturas e Cultura',    
         ]);
+        $temas->majors()->attach($csh->id); 
     }
 }

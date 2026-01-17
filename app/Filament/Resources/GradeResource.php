@@ -32,9 +32,6 @@ class GradeResource extends Resource
     protected static ?string $navigationLabel = 'Valor';
     protected static ?string $pluralModelLabel = 'Valor';
 
-    /* =====================================================
-     | DEFAULT QUERY → HANYA TAHUN AKADEMIK AKTIF + PERIOD AKTIF
-     ===================================================== */
     public static function getEloquentQuery(): Builder
     {
         $activeYearId = AcademicYear::where('is_active', true)->value('id');
@@ -46,17 +43,18 @@ class GradeResource extends Resource
             ->where('academic_year_id', $activeYearId)
             ->where('period_id', $activePeriodId);
 
-        // Filter grades by student_id if user has 'estudante' role
         $user = Auth::user();
+
         if ($user && $user->hasRole('estudante')) {
+            // Siswa hanya melihat nilainya sendiri
             $student = $user->student;
             if ($student) {
                 $query->where('student_id', $student->id);
             }
         }
-        
-        // Filter grades by teacher_id if user has 'mestre' role
+
         if ($user && $user->hasRole('mestre')) {
+            // Guru hanya melihat nilai siswa yang dia ajar
             $teacher = $user->teacher;
             if ($teacher) {
                 $query->where('teacher_id', $teacher->id);
@@ -66,9 +64,6 @@ class GradeResource extends Resource
         return $query;
     }
 
-    /* =====================================================
-     | HELPER NILAI → REMARKS
-     ===================================================== */
     public static function getRemarksByScore($score): string
     {
         if ($score === null || $score === '') {
@@ -89,9 +84,6 @@ class GradeResource extends Resource
         };
     }
 
-    /* =====================================================
-     | FORM
-     ===================================================== */
     public static function form(Form $form): Form
     {
         $activeYearId = AcademicYear::where('is_active', true)->value('id');
@@ -104,7 +96,7 @@ class GradeResource extends Resource
         $formFields = [];
 
         if ($isTeacher) {
-            // For teachers - Guru hanya bisa memilih dari materia dan kelas yang mereka ajarkan
+            // Guru
             $formFields[] = Forms\Components\TextInput::make('teacher_id_display')
                 ->label('Professor')
                 ->default(fn () => Auth::user()?->teacher?->name)
@@ -115,9 +107,7 @@ class GradeResource extends Resource
                 ->label('Materia')
                 ->options(function () {
                     $teacher = Auth::user()?->teacher;
-                    if (!$teacher) {
-                        return [];
-                    }
+                    if (!$teacher) return [];
                     return $teacher->subjectAssignments()
                         ->with('subjects')
                         ->get()
@@ -128,10 +118,7 @@ class GradeResource extends Resource
                 })
                 ->reactive()
                 ->required()
-                ->afterStateUpdated(function ($state, Forms\Set $set) {
-                    $set('class_room_id', null);
-                    $set('students', []);
-                });
+                ->afterStateUpdated(fn ($state, Forms\Set $set) => $set('class_room_id', null));
 
             $formFields[] = Select::make('class_room_id')
                 ->label('Klasse / Turma')
@@ -140,122 +127,90 @@ class GradeResource extends Resource
                 ->nullable()
                 ->options(function (Forms\Get $get) {
                     $teacher = Auth::user()?->teacher;
-                    if (!$teacher) {
-                        return [];
-                    }
-
+                    if (!$teacher) return [];
                     $subjectId = $get('subject_id');
-                    if (!$subjectId) {
-                        return [];
-                    }
-
-                    // Query SubjectAssignment langsung
+                    if (!$subjectId) return [];
                     $assignments = \App\Models\SubjectAssignment::where('teacher_id', $teacher->id)
                         ->where('is_active', true)
                         ->with(['subjects', 'classRooms.major'])
                         ->get();
-
-                    $classRoomOptions = [];
+                    $options = [];
                     foreach ($assignments as $assignment) {
-                        // Get classrooms untuk assignment ini
-                        if ($assignment->classRooms && $assignment->classRooms->isNotEmpty()) {
-                            // Get subjects untuk assignment ini
+                        if ($assignment->classRooms->isNotEmpty()) {
                             $subjects = $assignment->subjects()->get();
-                            
-                            // Check jika subject_id ada
-                            $hasSubject = $subjects->where('id', $subjectId)->isNotEmpty();
-                            
-                            if ($hasSubject) {
+                            if ($subjects->where('id', $subjectId)->isNotEmpty()) {
                                 foreach ($assignment->classRooms as $classroom) {
                                     $majorName = $classroom->major?->name ?? 'N/A';
-                                    $label = $classroom->level . ' ' . $classroom->turma . ' | ' . $majorName;
-                                    $classRoomOptions[$classroom->id] = $label;
+                                    $options[$classroom->id] = $classroom->level . ' ' . $classroom->turma . ' | ' . $majorName;
                                 }
                             }
                         }
                     }
-
-                    return $classRoomOptions;
+                    return $options;
                 })
                 ->reactive()
                 ->afterStateUpdated(function ($state, Forms\Set $set) {
-                    if (!$state) {
-                        $set('students', []);
-                        return;
-                    }
-
+                    if (!$state) return $set('students', []);
                     $students = Student::where('class_room_id', $state)
                         ->orderBy('name')
-                        ->get(['id', 'nre', 'name'])
-                        ->map(fn ($s) => [
-                            'id' => $s->id,
-                            'nre' => $s->nre,
-                            'name' => $s->name,
-                            'score' => null,
-                            'remarks' => 'Não Avaliado',
-                        ])
-                        ->toArray();
-
+                        ->get(['id','nre','name'])
+                        ->map(fn($s) => [
+                            'id'=>$s->id,
+                            'nre'=>$s->nre,
+                            'name'=>$s->name,
+                            'score'=>null,
+                            'remarks'=>'Não Avaliado',
+                        ])->toArray();
                     $set('students', $students);
                 });
 
             $formFields[] = Hidden::make('teacher_id')
-                ->default(fn () => Auth::user()->teacher->id)
+                ->default(fn() => Auth::user()->teacher->id)
                 ->dehydrated();
         } else {
-            // For admin - Bisa memilih kelas, materia, dan guru apapun
+            // Admin
             $formFields[] = Select::make('class_room_id')
                 ->label('Klasse / Turma')
-                ->options(
-                    ClassRoom::with('major')->get()->mapWithKeys(fn ($c) => [
-                        $c->id => "{$c->level} {$c->turma} ({$c->major->name})"
-                    ])
-                )
+                ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"]))
                 ->reactive()
                 ->required()
                 ->afterStateUpdated(function ($state, Forms\Set $set) {
-                    if (!$state) {
-                        $set('students', []);
-                        return;
-                    }
-
+                    if (!$state) return $set('students', []);
                     $students = Student::where('class_room_id', $state)
                         ->orderBy('name')
-                        ->get(['id', 'nre', 'name'])
-                        ->map(fn ($s) => [
-                            'id' => $s->id,
-                            'nre' => $s->nre,
-                            'name' => $s->name,
-                            'score' => null,
-                            'remarks' => 'Não Avaliado',
-                        ])
-                        ->toArray();
-
-                    $set('students', $students);
+                        ->get(['id','nre','name'])
+                        ->map(fn($s)=>[
+                            'id'=>$s->id,
+                            'nre'=>$s->nre,
+                            'name'=>$s->name,
+                            'score'=>null,
+                            'remarks'=>'Não Avaliado'
+                        ])->toArray();
+                    $set('students',$students);
                 });
 
             $formFields[] = Select::make('subject_id')
                 ->label('Materia')
-                ->options(Subject::orderBy('name')->pluck('name', 'id'))
+                ->options(Subject::orderBy('name')->pluck('name','id'))
                 ->required();
 
             $formFields[] = Select::make('teacher_id')
                 ->label('Professor')
-                ->options(Teacher::orderBy('name')->pluck('name', 'id'))
+                ->options(Teacher::orderBy('name')->pluck('name','id'))
                 ->nullable();
         }
 
         $formFields[] = Select::make('academic_year_id')
             ->label('Tinan Akademiku')
-            ->options(AcademicYear::orderBy('start_date', 'desc')->pluck('name', 'id'))
+            ->options(AcademicYear::orderBy('start_date','desc')->pluck('name','id'))
             ->default($activeYearId)
             ->disabled()
             ->dehydrated()
             ->required();
-        
+
         $formFields[] = Select::make('period_id')
             ->label('Periodu')
-            ->options(Period::where('academic_year_id', $activeYearId)->pluck('name', 'id'))
+            ->options(Period::where('academic_year_id',$activeYearId)->pluck('name','id'))
             ->default($activePeriodId)
             ->disabled()
             ->dehydrated()
@@ -263,28 +218,21 @@ class GradeResource extends Resource
 
         $formFields[] = Section::make('Tabel Estudante sira')
             ->schema([
-                Forms\Components\Repeater::make('students')->label('Lista Estudante')
+                Forms\Components\Repeater::make('students')
+                    ->label('Lista Estudante')
                     ->schema([
                         Grid::make(5)->schema([
                             TextInput::make('nre')->disabled()->dehydrated(false)->label('NRE'),
                             TextInput::make('name')->disabled()->dehydrated(false)->label('Naran Estudante'),
-
-                            TextInput::make('score')->label('Valor')
+                            TextInput::make('score')
+                                ->label('Valor')
                                 ->numeric()
                                 ->minValue(0)
                                 ->maxValue(10)
                                 ->step(0.1)
                                 ->reactive()
-                                ->afterStateUpdated(
-                                    fn ($state, Forms\Set $set) =>
-                                        $set('remarks', self::getRemarksByScore($state))
-                                ),
-
-                            TextInput::make('remarks')
-                                ->label('Observasaun')
-                                ->disabled()
-                                ->dehydrated(false),
-
+                                ->afterStateUpdated(fn($state, Forms\Set $set)=>$set('remarks', self::getRemarksByScore($state))),
+                            TextInput::make('remarks')->label('Observasaun')->disabled()->dehydrated(false),
                             Hidden::make('id')->required(),
                         ]),
                     ])
@@ -292,145 +240,105 @@ class GradeResource extends Resource
                     ->deletable(false)
                     ->reorderable(false)
                     ->columnSpanFull()
-                    ->default([])
+                    ->default([]),
             ]);
 
         return $form->schema($formFields);
     }
 
-    /* =====================================================
-     | TABLE
-     ===================================================== */
     public static function table(Table $table): Table
     {
-        $activeYearId = AcademicYear::where('is_active', true)->value('id');
-        $activePeriodId = Period::where('is_active', true)
-            ->where('academic_year_id', $activeYearId)
-            ->value('id');
+        $user = Auth::user();
+        $isStudent = $user?->hasRole('estudante') ?? false;
+        $isTeacher = $user?->hasRole('mestre') ?? false;
 
-        return $table
+        $tableInstance = $table
             ->columns([
-                Tables\Columns\TextColumn::make('student.nre')->label('NRE')->searchable(),
-                Tables\Columns\TextColumn::make('student.name')->label('Naran Estudante')->searchable(),
+                Tables\Columns\TextColumn::make('student.nre')->label('NRE')->searchable(!$isStudent),
+                Tables\Columns\TextColumn::make('student.name')->label('Naran Estudante')->searchable(!$isStudent),
                 Tables\Columns\TextColumn::make('classRoom.level')->label('Klasse'),
                 Tables\Columns\TextColumn::make('classRoom.turma')->label('Turma'),
                 Tables\Columns\TextColumn::make('classRoom.major.code')->label('Area Estudu'),
                 Tables\Columns\TextColumn::make('subject.name')->label('Disiplina'),
                 Tables\Columns\TextColumn::make('teacher.name')->label('Professor'),
-
-                Tables\Columns\TextColumn::make('score')
-                    ->label('Valor')
-                    ->badge()
-                    ->color(fn ($state) => match (true) {
+                Tables\Columns\TextColumn::make('score')->label('Valor')->badge()
+                    ->color(fn($state)=>match(true){
                         $state >= 8.5 => 'success',
                         $state >= 7.0 => 'warning',
                         $state >= 6.0 => 'info',
-                        $state > 0   => 'danger',
-                        default      => 'gray',
+                        $state > 0 => 'danger',
+                        default => 'gray'
                     }),
-
-                Tables\Columns\TextColumn::make('remarks')
-                    ->label('Observasaun')
-                    ->badge(),
-
+                Tables\Columns\TextColumn::make('remarks')->label('Observasaun')->badge(),
                 Tables\Columns\TextColumn::make('academicYear.name')->label('Tinan Akademiku'),
                 Tables\Columns\TextColumn::make('period.name')->label('Periodu'),
                 Tables\Columns\TextColumn::make('created_at')->date('d M Y'),
             ])
-            ->filters([
-                Tables\Filters\SelectFilter::make('class_room_id')
-                    ->label('Klasse / Turma')
-                    ->options(function () {
-                        $user = Auth::user();
-                        if ($user && $user->hasRole('mestre')) {
-                            $teacher = $user->teacher;
-                            if ($teacher) {
-                                // Untuk guru, hanya tampilkan kelas yang mereka ajar
-                                return $teacher->subjectAssignments()
-                                    ->where('is_active', true)
-                                    ->with('classRooms', 'classRooms.major')
-                                    ->get()
-                                    ->flatMap(fn ($assignment) => $assignment->classRooms)
-                                    ->unique('id')
-                                    ->mapWithKeys(fn ($c) => [
-                                        $c->id => "{$c->level} {$c->turma} ({$c->major->name})"
-                                    ])
-                                    ->toArray();
-                            }
-                        }
-                        // Untuk admin, tampilkan semua kelas
-                        return ClassRoom::with('major')->get()->mapWithKeys(fn ($c) => [
-                            $c->id => "{$c->level} {$c->turma} ({$c->major->name})"
-                        ])->toArray();
-                    })
-                    ->searchable()
-                    ->preload(),
-
-                Tables\Filters\SelectFilter::make('subject_id')
-                    ->label('Disiplina')
-                    ->options(function () {
-                        $user = Auth::user();
-                        if ($user && $user->hasRole('mestre')) {
-                            $teacher = $user->teacher;
-                            if ($teacher) {
-                                return Subject::whereHas('subjectAssignments', fn ($q) =>
-                                    $q->where('teacher_id', $teacher->id)
-                                )
-                                ->orderBy('name')
-                                ->pluck('name', 'id')
-                                ->toArray();
-                            }
-                        }
-                        return Subject::orderBy('name')->pluck('name', 'id')->toArray();
-                    })
-                    ->query(function (Builder $query, array $data) {
-                        if (!empty($data['value'])) {
-                            $query->where('subject_id', $data['value']);
-                        } else {
-                            // Jika tidak ada filter, default ke subject pertama untuk guru
-                            $user = Auth::user();
-                            if ($user && $user->hasRole('mestre')) {
-                                $teacher = $user->teacher;
-                                if ($teacher) {
-                                    $firstSubject = Subject::whereHas('subjectAssignments', fn ($q) =>
-                                        $q->where('teacher_id', $teacher->id)
-                                    )->orderBy('name')->first();
-                                    
-                                    if ($firstSubject) {
-                                        $query->where('subject_id', $firstSubject->id);
-                                    }
-                                }
-                            }
-                        }
-                    })
-                    ->searchable()
-                    ->preload(),
-
-                Tables\Filters\SelectFilter::make('teacher_id')
-                    ->label('Professor')
-                    ->options(function () {
-                        $user = Auth::user();
-                        if ($user && $user->hasRole('mestre')) {
-                            // Guru tidak perlu filter teacher, sudah otomatis mereka sendiri
-                            return [];
-                        }
-                        return Teacher::orderBy('name')->pluck('name', 'id')->toArray();
-                    })
-                    ->searchable()
-                    ->preload()
-                    ->hidden(fn () => Auth::user()?->hasRole('mestre') ?? false),
-            ])->filtersLayout(Tables\Enums\FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
-            ->headerActions([
+            ->headerActions($isStudent ? [] : [
                 FilamentExportHeaderAction::make('export')
                     ->label('Exporta PDF')
                     ->fileName('Grades_' . now()->format('Y-m-d_H-i-s'))
                     ->color('success'),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at','desc');
+
+        // Hanya tampilkan filter jika bukan estudante
+        if (!$isStudent) {
+            $tableInstance->filters([
+                Tables\Filters\SelectFilter::make('class_room_id')
+                    ->label('Klasse / Turma')
+                    ->options(function(){
+                        $user = Auth::user();
+                        if($user && $user->hasRole('mestre')){
+                            $teacher = $user->teacher;
+                            if($teacher){
+                                return $teacher->subjectAssignments()
+                                    ->where('is_active',true)
+                                    ->with('classRooms','classRooms.major')
+                                    ->get()
+                                    ->flatMap(fn($assignment)=>$assignment->classRooms)
+                                    ->unique('id')
+                                    ->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])
+                                    ->toArray();
+                            }
+                        }
+                        return ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])->toArray();
+                    })
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\SelectFilter::make('subject_id')
+                    ->label('Disiplina')
+                    ->options(function(){
+                        $user = Auth::user();
+                        if($user && $user->hasRole('mestre')){
+                            $teacher = $user->teacher;
+                            if($teacher){
+                                return Subject::whereHas('subjectAssignments', fn($q)=>$q->where('teacher_id',$teacher->id))
+                                    ->orderBy('name')
+                                    ->pluck('name','id')
+                                    ->toArray();
+                            }
+                        }
+                        return Subject::orderBy('name')->pluck('name','id')->toArray();
+                    })
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\SelectFilter::make('teacher_id')
+                    ->label('Professor')
+                    ->options(function(){
+                        return Teacher::orderBy('name')->pluck('name','id')->toArray();
+                    })
+                    ->searchable()
+                    ->preload()
+                    ->hidden(fn()=>Auth::user()?->hasRole('mestre') ?? false),
+            ])->filtersLayout(Tables\Enums\FiltersLayout::AboveContent);
+        }
+
+        return $tableInstance;
     }
 
     public static function getPages(): array

@@ -24,11 +24,11 @@ class StudentResource extends Resource
     protected static ?string $navigationLabel = 'Estudante';
     protected static ?string $navigationGroup = 'Managementu Akademiku';
 
+    // Batasi query untuk estudante
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->with(['classRoom.major']);
         
-        // Filter by student_id if user has 'estudante' role
         $user = Auth::user();
         if ($user && $user->hasRole('estudante')) {
             $student = $user->student;
@@ -40,9 +40,6 @@ class StudentResource extends Resource
         return $query;
     }
 
-    /**
-     * Get classroom options with major information
-     */
     protected static function getClassroomOptions(): array
     {
         return ClassRoom::with('major')
@@ -60,15 +57,41 @@ class StudentResource extends Resource
                 Forms\Components\Card::make([
                     Forms\Components\Section::make('Informasi Pessoal')
                         ->schema([
-                            Forms\Components\TextInput::make('nre')->label('ID Estudante')->required()->unique(ignoreRecord: true),
-                            Forms\Components\TextInput::make('name')->label('Naran Estudante')->required(),
-                            Forms\Components\Select::make('sex')->label('Sexu')->options(['m'=>'Mane','f'=>'Feto'])->required(),
-                            Forms\Components\DatePicker::make('birth_date')->label('Data Moris')->required(),
-                            Forms\Components\TextInput::make('birth_place')->label('Fatin Moris')->required(),
-                            Forms\Components\Textarea::make('address')->label('Enderesu'),
-                            Forms\Components\TextInput::make('parent_name')->label('Naran Inan/Aman'),
-                            Forms\Components\TextInput::make('parent_contact')->label('Nu. Kontaktu Inan/Aman'),
-                            Forms\Components\FileUpload::make('photo')->label('Imagen')->image()->directory('students/photos'),
+                            Forms\Components\TextInput::make('nre')
+                                ->label('ID Estudante')
+                                ->placeholder('Prenxe ID Estudante')
+                                ->required()
+                                ->unique(ignoreRecord: true),
+                            Forms\Components\TextInput::make('name')
+                                ->label('Naran Estudante')
+                                ->placeholder('Prenxe Naran Estudante')
+                                ->required(),
+                            Forms\Components\Select::make('sex')
+                                ->label('Sexu')
+                                ->options(['m'=>'Mane','f'=>'Feto'])
+                                ->placeholder('Hili Sexu')
+                                ->required(),
+                            Forms\Components\DatePicker::make('birth_date')
+                                ->label('Data Moris')
+                                ->required()
+                                ->placeholder('Prenxe Data Moris'),
+                            Forms\Components\TextInput::make('birth_place')
+                                ->label('Fatin Moris')
+                                ->required()
+                                ->placeholder('Prenxe Fatin Moris'),
+                            Forms\Components\Textarea::make('address')
+                                ->label('Hela Fatin')
+                                ->placeholder('Prenxe hela fatin'),
+                            Forms\Components\TextInput::make('parent_name')
+                                ->label('Naran Inan/Aman')
+                                ->placeholder('Prenxe naran inan/aman'),
+                            Forms\Components\TextInput::make('parent_contact')
+                                ->label('Nu. Kontaktu Inan/Aman')
+                                ->placeholder('Prenxe nu. kontaktu inan/aman'),
+                            Forms\Components\FileUpload::make('photo')
+                                ->label('Imagen')
+                                ->image()
+                                ->directory('students/photos'),
                         ])->columns(2),
                 ]),
                 Forms\Components\Card::make([
@@ -97,23 +120,33 @@ class StudentResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $user = Auth::user();
+        $isEstudante = $user?->hasRole('estudante');
+
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')->label('Nu')->sortable(),
-                Tables\Columns\TextColumn::make('nre')->label('ID Estudante')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('name')->label('Naran Estudante')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('sex')->label('Sexu')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('classRoom.level')->label('Klasse')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('classRoom.turma')->label('Turma')->sortable()->searchable(),
+                Tables\Columns\TextColumn::make('nre')->label('ID Estudante')->sortable()
+                    ->searchable(!$isEstudante),
+                Tables\Columns\TextColumn::make('name')->label('Naran Estudante')->sortable()
+                    ->searchable(!$isEstudante),
+                Tables\Columns\TextColumn::make('sex')->label('Sexu')->sortable()
+                    ->searchable(!$isEstudante),
+                Tables\Columns\TextColumn::make('classRoom.level')->label('Klasse')->sortable()
+                    ->searchable(!$isEstudante),
+                Tables\Columns\TextColumn::make('classRoom.turma')->label('Turma')->sortable()
+                    ->searchable(!$isEstudante),
                 Tables\Columns\TextColumn::make('classRoom.major.code')->label('Area Estudu')->badge()->color(fn($record) => match($record->classRoom?->major?->code) {
                     'CT' => 'success',
                     'CSH' => 'primary',
                     default => 'secondary',
-                })->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('admission_year')->label('Tinan Entrada')->sortable()->searchable(),
-                Tables\Columns\TextColumn::make('status')->label('Status')->sortable()->searchable(),
+                })->sortable()->searchable(!$isEstudante),
+                Tables\Columns\TextColumn::make('admission_year')->label('Tinan Entrada')->sortable()
+                    ->searchable(!$isEstudante),
+                Tables\Columns\TextColumn::make('status')->label('Status')->sortable()
+                    ->searchable(!$isEstudante),
             ])
-            ->filters([
+            ->filters($isEstudante ? [] : [
                 Tables\Filters\SelectFilter::make('class_room_id')
                     ->label('Kelas / Turma')
                     ->options(self::getClassroomOptions())
@@ -140,7 +173,7 @@ class StudentResource extends Resource
                 Tables\Actions\EditAction::make()->label('Edita'),
                 Tables\Actions\DeleteAction::make()->label('Apaga'),
             ])
-            ->headerActions([
+            ->headerActions($isEstudante ? [] : [
                 Action::make('import')->label('Import File')->color('danger')->icon('heroicon-o-users')
                     ->form([
                         Forms\Components\FileUpload::make('file')->label('Pilih File Excel/CSV')->required()
@@ -148,13 +181,13 @@ class StudentResource extends Resource
                             ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','text/csv']),
                     ])
                     ->action(function (array $data) {
-    $filePath = storage_path('app/public/' . $data['file']);
-    Excel::import(new StudentsImport, $filePath);
-    \Filament\Notifications\Notification::make()
-        ->title('Data siswa berhasil di-upload')
-        ->success()
-        ->send();
-}),
+                        $filePath = storage_path('app/public/' . $data['file']);
+                        Excel::import(new StudentsImport, $filePath);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Data siswa berhasil di-upload')
+                            ->success()
+                            ->send();
+                    }),
 
                 FilamentExportHeaderAction::make('export')->fileName('Lista-Estudante')->defaultFormat('pdf')->color('success'),
             ])
@@ -167,7 +200,7 @@ class StudentResource extends Resource
     public static function getRelations(): array
     {
         return [];
-    }  
+    }
 
     public static function getPages(): array
     {
