@@ -101,7 +101,7 @@
         <table class="header-table">
             <tr>
                 <td width="90">
-                    <img src="{{ asset('assets/img/nossef-logo.png')  }}" class="logo">
+                    <img src="{{ public_path('assets/img/nossef-logo.png')  }}" class="logo">
                 </td>
                 <td class="school-info">
                     <div class="school-name">ESG. NOSSEF</div>
