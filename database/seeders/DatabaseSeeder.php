@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Database\Seeders\MajorSeeder;
 use Database\Seeders\PeriodSeeder;
+use Database\Seeders\SubjectSeeder;
 use Database\Seeders\ClassRoomSeeder;
 use Database\Seeders\AcademicYearSeeder;
 use Database\Seeders\TeacherPositionSeeder;
@@ -24,6 +25,7 @@ class DatabaseSeeder extends Seeder
             PeriodSeeder::class,
             ClassRoomSeeder::class,
             TeacherPositionSeeder::class,
+            SubjectSeeder::class,
         ]);
 
         User::factory()->create([
