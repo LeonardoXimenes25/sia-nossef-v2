@@ -189,33 +189,52 @@ class AttendanceResource extends Resource
                 Tables\Columns\TextColumn::make('date')->label('Data')->date('d M Y')->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('academic_year_id')->label('Ano Akademico')
+                Tables\Filters\SelectFilter::make('academic_year_id')
+                    ->label('Ano Akademico')
                     ->options(AcademicYear::where('is_active', true)->pluck('name', 'id'))
                     ->default(fn () => AcademicYear::where('is_active', true)->first()?->id)
-                    ->searchable()->preload(),
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn () => !Auth::user()?->hasRole('estudante')),
 
-                Tables\Filters\SelectFilter::make('period_id')->label('Periodo')
+                Tables\Filters\SelectFilter::make('period_id')
+                    ->label('Periodo')
                     ->options(Period::pluck('name', 'id'))
                     ->default(fn () => Period::where('is_active', true)->first()?->id)
-                    ->searchable()->preload(),
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn () => !Auth::user()?->hasRole('estudante')),
 
-                Tables\Filters\SelectFilter::make('class_room_id')->label('Klasse / Turma')
+                Tables\Filters\SelectFilter::make('class_room_id')
+                    ->label('Klasse / Turma')
                     ->options(fn () => self::getTableClassRoomOptions())
-                    ->default(fn () => session('attendance_class_room_id'))->searchable()->preload(),
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn () => !Auth::user()?->hasRole('estudante')),
 
-                Tables\Filters\SelectFilter::make('subject_assignment_id')->label('Disciplina')
-                    ->options(fn () => self::getTableDisciplinaOptions())->searchable()->preload(),
+                Tables\Filters\SelectFilter::make('subject_assignment_id')
+                    ->label('Disciplina')
+                    ->options(fn () => self::getTableDisciplinaOptions())
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn () => !Auth::user()?->hasRole('estudante')),
 
-                Tables\Filters\Filter::make('date')->form([
-                    Forms\Components\DatePicker::make('date')->label('Data')->default(now())->required()
-                ])->query(fn (Builder $query, array $data) => $query->whereDate('date', $data['date'])),
+                Tables\Filters\Filter::make('date')
+                    ->form([
+                        Forms\Components\DatePicker::make('date')->label('Data')->default(now())->required()
+                    ])
+                    ->query(fn (Builder $query, array $data) => $query->whereDate('date', $data['date']))
+                    ->visible(fn () => !Auth::user()?->hasRole('estudante')),
 
-                Tables\Filters\SelectFilter::make('status')->options([
-                    'presente' => 'Presente',
-                    'moras' => 'Moras',
-                    'lisensa' => 'Lisensa',
-                    'falta' => 'Falta',
-                ])->multiple(),
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'presente' => 'Presente',
+                        'moras' => 'Moras',
+                        'lisensa' => 'Lisensa',
+                        'falta' => 'Falta',
+                    ])
+                    ->multiple()
+                    ->visible(fn () => !Auth::user()?->hasRole('estudante')),
             ])
             ->filtersLayout(Tables\Enums\FiltersLayout::AboveContent)
             ->actions([
@@ -230,15 +249,14 @@ class AttendanceResource extends Resource
             ->defaultSort('date', 'desc');
     }
 
-    /**
-     * Get classroom options for table filters based on user role
-     */
+    /* =========================
+     * OPTIONS TABLE FILTERS
+     * ========================= */
     private static function getTableClassRoomOptions(): array
     {
         $user = Auth::user();
         if (!$user) return [];
 
-        // Ganti admin jadi super_admin
         if ($user->hasRole('super_admin')) {
             return ClassRoom::with('major')->orderBy('level')->orderBy('turma')->get()
                 ->mapWithKeys(fn ($class) => [$class->id => $class->level . ' ' . $class->turma . ' (' . $class->major->name . ')'])
@@ -254,9 +272,6 @@ class AttendanceResource extends Resource
             ->toArray();
     }
 
-    /**
-     * Get disciplina options for table filters based on user role
-     */
     private static function getTableDisciplinaOptions(): array
     {
         $user = Auth::user();
@@ -279,9 +294,9 @@ class AttendanceResource extends Resource
         ])->toArray();
     }
 
-    /**
-     * Get classroom options for form based on user role and selected academic year/period
-     */
+    /* =========================
+     * OPTIONS FORM
+     * ========================= */
     private static function getClassRoomOptions(?int $academicYearId = null, ?int $periodId = null): array
     {
         $user = Auth::user();
@@ -306,9 +321,6 @@ class AttendanceResource extends Resource
             ->toArray();
     }
 
-    /**
-     * Get disciplina options for form based on user role
-     */
     private static function getDisciplinaOptions(?int $academicYearId, ?int $periodId, ?int $classRoomId): array
     {
         if (!$academicYearId || !$periodId || !$classRoomId) return [];
@@ -339,6 +351,9 @@ class AttendanceResource extends Resource
         ])->toArray();
     }
 
+    /* =========================
+     * PAGES
+     * ========================= */
     public static function getPages(): array
     {
         return [
@@ -348,14 +363,27 @@ class AttendanceResource extends Resource
         ];
     }
 
+    /* =========================
+     * QUERY BERDASARKAN ROLE
+     * ========================= */
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
         $user = Auth::user();
+
         if (!$user) return $query->whereRaw('1 = 0');
 
+        // SUPER ADMIN → semua data
         if ($user->hasRole('super_admin')) return $query;
 
+        // ESTUDANTE → hanya data sendiri
+        if ($user->hasRole('estudante')) {
+            $student = Student::where('user_id', $user->id)->first();
+            if (!$student) return $query->whereRaw('1 = 0');
+            return $query->where('student_id', $student->id);
+        }
+
+        // MESTRE → hanya data miliknya
         $teacher = Teacher::where('user_id', $user->id)->first();
         if (!$teacher) return $query->whereRaw('1 = 0');
 

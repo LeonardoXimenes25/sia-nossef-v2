@@ -26,6 +26,7 @@
   </div>
 </section>
 
+{{-- Mapa Lokalizasaun ESC. NOSSEF --}}
 <div class="container mt-4">
   <h2 class="text-center mb-3">Mapa Lokalizasaun ESG. NOSSEF, Timor-Leste</h2>
   <div id="map" style="height: 500px; border-radius: 10px;"></div>
@@ -40,7 +41,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     // Inisialisasi peta
-    const map = L.map('map').setView([-8.8742, 125.7275], 8); // tengah Timor-Leste
+    const map = L.map('map').setView([-8.674164, 125.422453], 8); // tengah Timor-Leste
 
     // Base map OSM
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
