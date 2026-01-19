@@ -514,16 +514,16 @@ function setModalData(teacher) {
 
     // Definisikan info items untuk kolom 2 (Informasi Profesional)
     const column2Items = [
-        { 
-            icon: 'bi-envelope', 
-            label: 'Email', 
-            value: teacher.email ? `<a href="mailto:${teacher.email}" class="text-decoration-none">${teacher.email}</a>` : 'La Eziste' 
-        },
-        { 
-            icon: 'bi-telephone', 
-            label: 'Telepon', 
-            value: teacher.phone ? `<a href="tel:${teacher.phone}" class="text-decoration-none">${teacher.phone}</a>` : 'La Eziste' 
-        }
+        // { 
+        //     icon: 'bi-envelope', 
+        //     label: 'Email', 
+        //     value: teacher.email ? `<a href="mailto:${teacher.email}" class="text-decoration-none">${teacher.email}</a>` : 'La Eziste' 
+        // },
+        // { 
+        //     icon: 'bi-telephone', 
+        //     label: 'Telepon', 
+        //     value: teacher.phone ? `<a href="tel:${teacher.phone}" class="text-decoration-none">${teacher.phone}</a>` : 'La Eziste' 
+        // }
     ];
 
     // Isi kolom 1

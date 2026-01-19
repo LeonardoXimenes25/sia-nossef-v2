@@ -23,7 +23,7 @@
                         <li><a class="dropdown-item" href="{{ route('teachers.index') }}">Lista Professores</a></li>
                     </ul>
                     </li>
-                    <li><a href="{{route('news.index')}}">Portal Informasaun</a></li>
+                    <li><a href="{{route('news.index')}}">Informasaun</a></li>
                 </ul>
             </nav>
 
