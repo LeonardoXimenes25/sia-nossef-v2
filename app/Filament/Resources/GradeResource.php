@@ -272,7 +272,7 @@ class GradeResource extends Resource
                 Tables\Columns\TextColumn::make('remarks')->label('Observasaun')->badge(),
                 Tables\Columns\TextColumn::make('academicYear.name')->label('Tinan Akademiku'),
                 Tables\Columns\TextColumn::make('period.name')->label('Periodu'),
-                Tables\Columns\TextColumn::make('created_at')->date('d M Y'),
+                Tables\Columns\TextColumn::make('created_at')->date('d M Y')->label('Data Kriasaun'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

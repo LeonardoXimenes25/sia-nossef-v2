@@ -57,8 +57,8 @@ class NewsResource extends Resource
                     ->label('Imajen')
                     ->square()
                     ->defaultImageUrl(url('/images/placeholder.png')),
-                Tables\Columns\TextColumn::make('created_at')->date('d-m-y'),
-                Tables\Columns\TextColumn::make('updated_at')->date('d-m-y'),
+                Tables\Columns\TextColumn::make('created_at')->date('d-m-y')->label('Data Kriasaun'),
+                Tables\Columns\TextColumn::make('updated_at')->date('d-m-y')->label('Data Update'),
 
             ])
             ->filters([
