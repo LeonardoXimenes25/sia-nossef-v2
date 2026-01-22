@@ -3,15 +3,14 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\SubjectResource\Pages;
-use App\Models\Major;
 use App\Models\Subject;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
-use Illuminate\Support\Facades\Auth;
 use AlperenErsoy\FilamentExport\Actions\FilamentExportHeaderAction;
+use Illuminate\Database\Eloquent\Builder;
 
 class SubjectResource extends Resource
 {
@@ -46,7 +45,7 @@ class SubjectResource extends Resource
      ===================================================== */
     public static function table(Table $table): Table
     {
-        $user = Auth::user();
+        $user = filament()->auth()->user();
         $isStudent = $user?->hasRole('estudante');
 
         return $table
@@ -62,23 +61,35 @@ class SubjectResource extends Resource
                     ->color(fn ($record) =>
                         $record->majors->count() > 1 ? 'success' : 'primary'
                     )
-                    ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([])
-            ->headerActions($isStudent ? [] : [
-                FilamentExportHeaderAction::make('export')
-                    ->fileName('Lista-Disiplina')
-                    ->defaultFormat('pdf')
-                    ->color('success'),
-            ])
+            ->headerActions(
+                $isStudent
+                    ? []
+                    : [
+                        FilamentExportHeaderAction::make('export')
+                            ->fileName('Lista-Disiplina')
+                            ->defaultFormat('pdf')
+                            ->color('success'),
+                    ]
+            )
             ->actions([
-                Tables\Actions\EditAction::make()->label('Edita')->hidden(fn() => $isStudent),
-                Tables\Actions\DeleteAction::make()->label('Apaga')->hidden(fn() => $isStudent),
+                Tables\Actions\EditAction::make()
+                    ->label('Edita')
+                    ->hidden(fn () => $isStudent),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Apaga')
+                    ->hidden(fn () => $isStudent),
             ])
-            ->bulkActions($isStudent ? [] : [
-                Tables\Actions\DeleteBulkAction::make(),
-            ])
+            ->bulkActions(
+                $isStudent
+                    ? []
+                    : [
+                        Tables\Actions\DeleteBulkAction::make(),
+                    ]
+            )
             ->defaultSort('id', 'asc');
     }
 
@@ -98,27 +109,33 @@ class SubjectResource extends Resource
         return [
             'index' => Pages\ListSubjects::route('/'),
             'create' => Pages\CreateSubject::route('/create'),
-            'edit' => Pages\EditSubject::route('/{record}/edit'),
+            'edit'   => Pages\EditSubject::route('/{record}/edit'),
         ];
     }
 
     /* =====================================================
-     | QUERY
+     | QUERY FILTER ROLE ESTUDANTE VIA CLASSROOM → MAJOR
      ===================================================== */
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
-{
-    $query = parent::getEloquentQuery();
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = filament()->auth()->user();
 
-    $user = Auth::user();
-    if ($user && $user->hasRole('estudante')) {
-        $student = $user->student;
-        if ($student) {
-            // Filter subject sesuai major siswa
-            $query->whereHas('majors', fn($q) => $q->where('id', $student->major_id));
+        if ($user?->hasRole('estudante')) {
+            $student = $user->student;
+
+            if ($student && $student->classRoom && $student->classRoom->major_id) {
+                $majorId = $student->classRoom->major_id;
+
+                $query->whereHas('majors', function ($q) use ($majorId) {
+                    $q->where('majors.id', $majorId);
+                });
+            } else {
+                // Jika student belum punya classroom atau classroom belum punya major
+                $query->whereRaw('1 = 0'); // hasil kosong
+            }
         }
+
+        return $query;
     }
-
-    return $query;
-}
-
 }
