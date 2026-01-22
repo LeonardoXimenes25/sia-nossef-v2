@@ -72,9 +72,9 @@
 
                     <!-- Academic Year -->
                     <div class="col-md-2">
-                        <label class="form-label fw-semibold text-primary"><i class="fas fa-calendar-alt me-2"></i>Hili Academic Year</label>
+                        <label class="form-label fw-semibold text-primary"><i class="fas fa-calendar-alt me-2"></i>Hili Tinan Akademiku</label>
                         <select class="form-select border" id="year-select">
-                            <option value="all" selected>Academic Year Hotu</option>
+                            <option value="all" selected>Tinan Akademiku Hotu</option>
                             @foreach($academicYears as $year)
                                 <option value="{{ $year->id }}">{{ $year->name }}</option>
                             @endforeach
@@ -138,7 +138,7 @@
                             <th>Turma</th>
                             <th>Area Estudu</th>
                             <th>Períudu</th>
-                            <th>Academic Year</th>
+                            <th>Tinan Akademiku</th>
                         </tr>
                     </thead>
                     <tbody>
