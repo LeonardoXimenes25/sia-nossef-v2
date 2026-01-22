@@ -50,7 +50,7 @@ class AcademicYearResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Tinan Letivu')->sortable(),
                 Tables\Columns\TextColumn::make('start_date')->label('Data Hahu')->date('d-m-y'),
-                Tables\Columns\TextColumn::make('end_date')->label('Data Remaata')->date('d-m-y'),
+                Tables\Columns\TextColumn::make('end_date')->label('Data Remata')->date('d-m-y'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->boolean()
                     ->label('Aktivu')

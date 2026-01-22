@@ -344,8 +344,7 @@
     </style>
 
     <div class="container section-title mt-4" data-aos="fade-up" style="margin-top: 100px">
-        <h2>Lista Professores</h2>
-        <p>Our Hardworking Team</p>
+        <h2>Profil Professores</h2>
     </div>
 
     <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -369,10 +368,6 @@
                         <div class="member-info">
                             <h4 class="member-name">{{ $teacher->name }}</h4>
                             <span class="member-role">{{ $teacher->educational_qualification ?? 'Professor' }}</span>
-                            <p class="member-bio">
-                                {{ $teacher->email }}<br>
-                                {{ $teacher->phone }}
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -395,7 +390,7 @@
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
-                    <p class="mt-3">Memuat data guru...</p>
+                    <p class="mt-3">Loading Dadus Mestre...</p>
                 </div>
 
                 <!-- Content yang akan diisi via JavaScript -->

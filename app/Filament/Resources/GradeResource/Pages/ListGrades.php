@@ -2,8 +2,9 @@
 
 namespace App\Filament\Resources\GradeResource\Pages;
 
-use App\Filament\Resources\GradeResource;
 use Filament\Actions;
+use App\Filament\Widgets\GradeStats;
+use App\Filament\Resources\GradeResource;
 use Filament\Resources\Pages\ListRecords;
 
 class ListGrades extends ListRecords
@@ -15,6 +16,13 @@ class ListGrades extends ListRecords
     {
         return [
             Actions\CreateAction::make()->label('Aumenta Dadus'),
+        ];
+    }
+
+     protected function getHeaderWidgets(): array
+    {
+        return [
+            GradeStats::class,
         ];
     }
 }
