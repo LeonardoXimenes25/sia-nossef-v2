@@ -189,7 +189,7 @@ class TimetableResource extends Resource
                 TextColumn::make('subject.name')->label('Disiplina'),
                 TextColumn::make('classRoom.level')->label('Klase'),
                 TextColumn::make('classRoom.turma')->label('Turma'),
-                TextColumn::make('classRoom.major.name')->label('Area Estudu'),
+                TextColumn::make('classRoom.major.code')->label('Area Estudu'),
                 TextColumn::make('subjectAssignment.teacher.name')->label('Profesor'),
             ])
             ->actions([
