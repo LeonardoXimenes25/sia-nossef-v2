@@ -181,17 +181,16 @@ class TimetableResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')->label('Nu')->sortable(),
-                TextColumn::make('subjectAssignment.teacher.name')->label('Profesor'),
-                TextColumn::make('subject.name')->label('Disiplina'),
-                TextColumn::make('classRoom.level')->label('Klase'),
-                TextColumn::make('classRoom.turma')->label('Turma'),
-                TextColumn::make('classRoom.major.name')->label('Area Estudu'),
                 TextColumn::make('day')
                     ->label('Loron')
                     ->formatStateUsing(fn ($state) => self::$dayLabels[$state] ?? $state),
                 TextColumn::make('start_time')->label('Oras Hahu'),
                 TextColumn::make('end_time')->label('Oras Ramata'),
+                TextColumn::make('subject.name')->label('Disiplina'),
+                TextColumn::make('classRoom.level')->label('Klase'),
+                TextColumn::make('classRoom.turma')->label('Turma'),
+                TextColumn::make('classRoom.major.name')->label('Area Estudu'),
+                TextColumn::make('subjectAssignment.teacher.name')->label('Profesor'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()

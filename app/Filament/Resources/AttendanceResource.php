@@ -185,7 +185,7 @@ class AttendanceResource extends Resource
                     'warning' => 'moras',
                     'info' => 'lisensa',
                     'danger' => 'falta',
-                ]),
+                ])->label('Observasaun')->sortable(),
                 Tables\Columns\TextColumn::make('date')->label('Data')->date('d M Y')->sortable(),
             ])
             ->filters([
