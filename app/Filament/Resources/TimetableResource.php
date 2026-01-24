@@ -9,12 +9,13 @@ use App\Models\Timetable;
 use App\Models\AcademicYear;
 use Filament\Resources\Resource;
 use App\Models\SubjectAssignment;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Forms\Components\TimePicker;
 use Illuminate\Database\Eloquent\Builder;
 use App\Filament\Resources\TimetableResource\Pages;
-use Illuminate\Support\Facades\Auth;
+use AlperenErsoy\FilamentExport\Actions\FilamentExportHeaderAction;
 
 class TimetableResource extends Resource
 {
@@ -191,6 +192,12 @@ class TimetableResource extends Resource
                 TextColumn::make('classRoom.turma')->label('Turma'),
                 TextColumn::make('classRoom.major.code')->label('Area Estudu'),
                 TextColumn::make('subjectAssignment.teacher.name')->label('Profesor'),
+            ])
+            ->headerActions([
+                FilamentExportHeaderAction::make('export')
+                    ->fileName('Lista-Horariu')
+                    ->defaultFormat('pdf')
+                    ->color('success'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
