@@ -7,7 +7,7 @@ use Filament\Widgets\ChartWidget;
 
 class GenderByMajorCTChart extends ChartWidget
 {
-    protected static ?string $heading = 'CT – Distribuisaun Mane & Feto';
+    protected static ?string $heading = 'Distribuisaun Jeneru Siensia Teknolojia';
     protected static ?int $sort = 2;
     protected static ?string $maxHeight = '250px'; // lebih kecil dari default
 

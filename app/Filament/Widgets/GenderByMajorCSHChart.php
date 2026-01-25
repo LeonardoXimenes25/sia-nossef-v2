@@ -7,7 +7,7 @@ use Filament\Widgets\ChartWidget;
 
 class GenderByMajorCSHChart extends ChartWidget
 {
-    protected static ?string $heading = 'CSH – Distribuisaun Mane & Feto';
+    protected static ?string $heading = 'Distribuisaun Jeneru Ciensia Sosias';
     protected static ?int $sort = 2;
     protected static ?string $maxHeight = '250px'; // lebih kecil dari default
 
