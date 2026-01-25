@@ -2,12 +2,12 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Student;
+use App\Models\Teacher;
 use Filament\Widgets\ChartWidget;
 
-class StudentGender extends ChartWidget
+class TeacherGender extends ChartWidget
 {
-    protected static ?string $heading = 'Distribuisaun Estudante por Jenru';
+    protected static ?string $heading = 'Distribuisaun Professor por Jenru';
     protected static ?string $maxHeight = '220px';
     protected static ?int $sort = 1; // tampil setelah LatestTimetables
 
@@ -15,12 +15,12 @@ class StudentGender extends ChartWidget
     protected function getData(): array
     {
         return [
-            $male = Student::where('sex', 'm')->count(),
-            $female = Student::where('sex', 'f')->count(),
+            $male = Teacher::where('gender', 'm')->count(),
+            $female = Teacher::where('gender', 'f')->count(),
             'labels' => ['Mane', 'Feto'],
             'datasets' => [
                 [
-                    'label' => 'Estudante por Jenru',
+                    'label' => 'Professor por Jenru',
                     'data' => [$male, $female],
                     'backgroundColor' => [
                         'rgba(54, 162, 235, 0.7)', // Warna untuk Mane

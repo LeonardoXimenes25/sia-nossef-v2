@@ -2,10 +2,12 @@
 
 namespace App\Filament\Pages;
 
-use Filament\Pages\Dashboard as BaseDashboard;
 use App\Filament\Widgets\StatsOverview;
+use App\Filament\Widgets\TeacherGender;
 use App\Filament\Widgets\LatestTimetables;
-use App\Filament\Widgets\StudentGender;
+use App\Filament\Widgets\GenderByMajorCTChart;
+use Filament\Pages\Dashboard as BaseDashboard;
+use App\Filament\Widgets\GenderByMajorCSHChart;
 
 class Dashboard extends BaseDashboard
 {
@@ -45,7 +47,9 @@ class Dashboard extends BaseDashboard
         return [
             StatsOverview::class,
             LatestTimetables::class,
-            StudentGender::class,
+            TeacherGender::class,
+            GenderByMajorCTChart::class,
+            GenderByMajorCSHChart::class,
         ];
     }
 }
