@@ -50,6 +50,7 @@ class Dashboard extends BaseDashboard
             TeacherGender::class,
             GenderByMajorCTChart::class,
             GenderByMajorCSHChart::class,
+            TeacherbyEducationQualification::class,
         ];
     }
 }
