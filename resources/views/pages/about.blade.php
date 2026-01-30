@@ -23,26 +23,19 @@
               <h2>Misaun</h2>
 
               <div class="description">
-                <p>
-                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </p>
-
-                <p>
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                </p>
+                <ul>
+                  <li>Cura personalis – haree estudante ida-idak hanesan ema tomak (mente, espiritu, moral, no sosial).</li>
+                  <li>Excelénsia (Magis) – buka sempre buat ne’ebé di’ak liu tan, la’ós de’it satisfasaun iha nivel ki’ik.</li>
+                  <li>Justisa sosial – forma estudante atu sensível ba situasaun ema ki’ik sira no hakarak halo mudansa di’ak iha sosiedade.</li>
+                  <li>Servisu ba ema seluk – edukasaun la’ós de’it ba an-rasik, maibé ba benefísiu komunidade. misaun Forma lider servisu (leaders for others)
+                      Visaun Jesuita mak atu forma estudante sira ne’ebé la busca de’it susesu rasik, maibé prontu atu serve komunidade, nasaun, no ema ne’ebé ki’ik liu.</li>
+                </ul>
               </div>
 
               {{-- Misaun --}}
               <h2>Vizaun</h2>
 
               <div class="description">
-                <p>
-                  Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                </p>
-
-                <p>
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                </p>
               </div>
             </div>
           </div>
