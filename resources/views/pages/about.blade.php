@@ -23,11 +23,11 @@
               <h2>Misaun</h2>
 
               <div class="description">
-                <ul>
-                  <li>Cura personalis – haree estudante ida-idak hanesan ema tomak (mente, espiritu, moral, no sosial).</li>
-                  <li>Excelénsia (Magis) – buka sempre buat ne’ebé di’ak liu tan, la’ós de’it satisfasaun iha nivel ki’ik.</li>
-                  <li>Justisa sosial – forma estudante atu sensível ba situasaun ema ki’ik sira no hakarak halo mudansa di’ak iha sosiedade.</li>
-                  <li>Servisu ba ema seluk – edukasaun la’ós de’it ba an-rasik, maibé ba benefísiu komunidade. misaun Forma lider servisu (leaders for others)
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item"><b>Cura personalis – </b>haree estudante ida-idak hanesan ema tomak (mente, espiritu, moral, no sosial).</li>
+                  <li class="list-group-item"><b>Excelénsia (Magis) –</b> buka sempre buat ne’ebé di’ak liu tan, la’ós de’it satisfasaun iha nivel ki’ik.</li>
+                  <li class="list-group-item"><b>Justisa sosial –</b> forma estudante atu sensível ba situasaun ema ki’ik sira no hakarak halo mudansa di’ak iha sosiedade.</li>
+                  <li class="list-group-item"><b>Servisu ba ema seluk –</b> edukasaun la’ós de’it ba an-rasik, maibé ba benefísiu komunidade. misaun Forma lider servisu (leaders for others)
                       Visaun Jesuita mak atu forma estudante sira ne’ebé la busca de’it susesu rasik, maibé prontu atu serve komunidade, nasaun, no ema ne’ebé ki’ik liu.</li>
                 </ul>
               </div>
@@ -36,6 +36,28 @@
               <h2>Vizaun</h2>
 
               <div class="description">
+                <h3>Justisa sosial no solidariedade</h3>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">Sensível ba sofrimentu ema seluk</li>
+                  <li class="list-group-item">Halo asaun ba hadia desigualdade</li>
+                  <li class="list-group-item">Defende direitu ema</li>
+                  <li class="list-group-item">Kontribui ba dame no harmonía sosial</li>
+                </ul>
+
+                <h3>Excelénsia (Magis)</h3>
+                <p>Jesuita iha visaun atu buka buat di’ak liu tan iha prosesu aprendizajen, la’ós atu konkurrénsia de’it, maibé atu halo servisu ne’ebé di’ak liu ba benefísiu ema barak.</p>
+
+                <h3>Fé no kultura hakmatek</h3>
+                <p>Edukasaun Jesuita buka halo ligasaun entre:</p>
+                <ul>
+                  <li>Fé no razáun</li>
+                  <li>Kultura lokal no valor universal</li>
+                  <li>Tradisaun no inovasaun</li>
+                  <li>Transformasaun sosiedade</li>
+                  <li>Muda estudante sira sai ema ne’ebé responsável</li>
+                  <li>Forma sidadán ne’ebé onestu</li>
+                  <li>Fó kontribuisaun real ba dezenvolvimentu nasaun visaun</li>
+                </ul>
               </div>
             </div>
           </div>
