@@ -36,7 +36,7 @@
               <h2>Vizaun</h2>
 
               <div class="description">
-                <h3>Justisa sosial no solidariedade</h3>
+                <h5>Justisa sosial no solidariedade</h5>
                 <ul class="list-group list-group-flush">
                   <li class="list-group-item">Sensível ba sofrimentu ema seluk</li>
                   <li class="list-group-item">Halo asaun ba hadia desigualdade</li>
@@ -44,10 +44,10 @@
                   <li class="list-group-item">Kontribui ba dame no harmonía sosial</li>
                 </ul>
 
-                <h3>Excelénsia (Magis)</h3>
+                <h5>Excelénsia (Magis)</h5>
                 <p>Jesuita iha visaun atu buka buat di’ak liu tan iha prosesu aprendizajen, la’ós atu konkurrénsia de’it, maibé atu halo servisu ne’ebé di’ak liu ba benefísiu ema barak.</p>
 
-                <h3>Fé no kultura hakmatek</h3>
+                <h5>Fé no kultura hakmatek</h5>
                 <p>Edukasaun Jesuita buka halo ligasaun entre:</p>
                 <ul>
                   <li>Fé no razáun</li>

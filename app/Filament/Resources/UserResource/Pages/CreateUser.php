@@ -10,4 +10,9 @@ class CreateUser extends CreateRecord
 {
     protected static string $resource = UserResource::class;
     protected static ?string $title = 'Kria Utilizador';
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

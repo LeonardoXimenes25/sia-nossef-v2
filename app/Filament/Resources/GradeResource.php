@@ -46,7 +46,6 @@ class GradeResource extends Resource
         $user = Auth::user();
 
         if ($user && $user->hasRole('estudante')) {
-            // Siswa hanya melihat nilainya sendiri
             $student = $user->student;
             if ($student) {
                 $query->where('student_id', $student->id);
@@ -54,7 +53,6 @@ class GradeResource extends Resource
         }
 
         if ($user && $user->hasRole('mestre')) {
-            // Guru hanya melihat nilai siswa yang dia ajar
             $teacher = $user->teacher;
             if ($teacher) {
                 $query->where('teacher_id', $teacher->id);
@@ -62,26 +60,6 @@ class GradeResource extends Resource
         }
 
         return $query;
-    }
-
-    public static function getRemarksByScore($score): string
-    {
-        if ($score === null || $score === '') {
-            return 'Não Avaliado';
-        }
-
-        $score = (float) $score;
-
-        return match (true) {
-            $score >= 9.5 => 'Excelente',
-            $score >= 8.5 => 'Muito Bom',
-            $score >= 7.0 => 'Bom',
-            $score >= 6.0 => 'Suficiente',
-            $score >= 5.0 => 'Insuficiente',
-            $score >= 3.0 => 'Mau',
-            $score >= 1.0 => 'Muito Mau',
-            default       => 'Não Avaliado',
-        };
     }
 
     public static function form(Form $form): Form
@@ -97,7 +75,7 @@ class GradeResource extends Resource
 
         if ($isTeacher) {
             // Guru
-            $formFields[] = Forms\Components\TextInput::make('teacher_id_display')
+            $formFields[] = TextInput::make('teacher_id_display')
                 ->label('Professor')
                 ->default(fn () => Auth::user()?->teacher?->name)
                 ->disabled()
@@ -171,7 +149,7 @@ class GradeResource extends Resource
             // Admin
             $formFields[] = Select::make('class_room_id')
                 ->label('Klasse / Turma')
-                ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"]))
+                ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])->toArray())
                 ->reactive()
                 ->required()
                 ->afterStateUpdated(function ($state, Forms\Set $set) {
@@ -231,7 +209,7 @@ class GradeResource extends Resource
                                 ->maxValue(10)
                                 ->step(0.1)
                                 ->reactive()
-                                ->afterStateUpdated(fn($state, Forms\Set $set)=>$set('remarks', self::getRemarksByScore($state))),
+                                ->afterStateUpdated(fn($state, Forms\Set $set)=>$set('remarks', Grade::getRemarksByScore($state))),
                             TextInput::make('remarks')->label('Observasaun')->disabled()->dehydrated(false),
                             Hidden::make('id')->required(),
                         ]),
@@ -270,71 +248,41 @@ class GradeResource extends Resource
                         default => 'gray'
                     }),
                 Tables\Columns\TextColumn::make('remarks')->label('Observasaun')->badge(),
+                Tables\Columns\TextColumn::make('average_score')->label('Rata-rata')->sortable(),
+                Tables\Columns\TextColumn::make('rank_class')->label('Rank Kelas')->sortable(),
+                Tables\Columns\TextColumn::make('rank_all')->label('Rank Seluruh')->sortable(),
                 Tables\Columns\TextColumn::make('academicYear.name')->label('Tinan Akademiku'),
                 Tables\Columns\TextColumn::make('period.name')->label('Periodu'),
-                Tables\Columns\TextColumn::make('created_at')->date('d M Y')->label('Data Kriasaun'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->headerActions($isStudent ? [] : [
-                FilamentExportHeaderAction::make('export')
-                    ->label('Exporta PDF')
-                    ->fileName('Grades_' . now()->format('Y-m-d_H-i-s'))
+                FilamentExportHeaderAction::make('export_rapor')
+                    ->label('Exporta Rapor')
+                    ->fileName('Rapor_' . now()->format('Y-m-d'))
                     ->color('success'),
             ])
             ->defaultSort('created_at','desc');
 
-        // Hanya tampilkan filter jika bukan estudante
         if (!$isStudent) {
             $tableInstance->filters([
                 Tables\Filters\SelectFilter::make('class_room_id')
                     ->label('Klasse / Turma')
-                    ->options(function(){
-                        $user = Auth::user();
-                        if($user && $user->hasRole('mestre')){
-                            $teacher = $user->teacher;
-                            if($teacher){
-                                return $teacher->subjectAssignments()
-                                    ->where('is_active',true)
-                                    ->with('classRooms','classRooms.major')
-                                    ->get()
-                                    ->flatMap(fn($assignment)=>$assignment->classRooms)
-                                    ->unique('id')
-                                    ->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])
-                                    ->toArray();
-                            }
-                        }
-                        return ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])->toArray();
-                    })
+                    ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])->toArray())
                     ->searchable()
                     ->preload(),
                 Tables\Filters\SelectFilter::make('subject_id')
                     ->label('Disiplina')
-                    ->options(function(){
-                        $user = Auth::user();
-                        if($user && $user->hasRole('mestre')){
-                            $teacher = $user->teacher;
-                            if($teacher){
-                                return Subject::whereHas('subjectAssignments', fn($q)=>$q->where('teacher_id',$teacher->id))
-                                    ->orderBy('name')
-                                    ->pluck('name','id')
-                                    ->toArray();
-                            }
-                        }
-                        return Subject::orderBy('name')->pluck('name','id')->toArray();
-                    })
+                    ->options(Subject::orderBy('name')->pluck('name','id')->toArray())
                     ->searchable()
                     ->preload(),
                 Tables\Filters\SelectFilter::make('teacher_id')
                     ->label('Professor')
-                    ->options(function(){
-                        return Teacher::orderBy('name')->pluck('name','id')->toArray();
-                    })
+                    ->options(Teacher::orderBy('name')->pluck('name','id')->toArray())
                     ->searchable()
-                    ->preload()
-                    ->hidden(fn()=>Auth::user()?->hasRole('mestre') ?? false),
+                    ->preload(),
             ])->filtersLayout(Tables\Enums\FiltersLayout::AboveContent);
         }
 

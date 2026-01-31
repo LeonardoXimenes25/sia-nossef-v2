@@ -26,43 +26,38 @@ class Grade extends Model
         'updated_at' => 'datetime',
     ];
 
-    // Relasi ke Student
+    // ===== RELATIONS =====
     public function student()
     {
         return $this->belongsTo(Student::class);
     }
 
-    // Relasi ke Subject
     public function subject()
     {
         return $this->belongsTo(Subject::class);
     }
 
-    // Relasi ke ClassRoom
     public function classRoom()
     {
         return $this->belongsTo(ClassRoom::class);
     }
 
-    // Relasi ke Teacher
     public function teacher()
     {
         return $this->belongsTo(Teacher::class);
     }
 
-    // Relasi ke AcademicYear
     public function academicYear()
     {
         return $this->belongsTo(AcademicYear::class);
     }
 
-    // Relasi ke Period
     public function period()
     {
         return $this->belongsTo(Period::class);
     }
 
-    // Function untuk remark berdasarkan score
+    // ===== REMARK FUNCTION =====
     public static function getRemarksByScore($score): string
     {
         if ($score === null || $score === '') {
@@ -81,5 +76,43 @@ class Grade extends Model
             $score >= 1.0 => 'Muito Mau',
             default       => 'Não Avaliado',
         };
+    }
+
+    // ===== AVERAGE SCORE PER STUDENT =====
+    public function getAverageScoreAttribute(): float
+    {
+        return self::where('student_id', $this->student_id)
+            ->where('academic_year_id', $this->academic_year_id)
+            ->where('period_id', $this->period_id)
+            ->avg('score') ?? 0;
+    }
+
+    // ===== RANK PER CLASS =====
+    public function getRankClassAttribute(): int
+    {
+        $students = self::selectRaw('student_id, AVG(score) as avg_score')
+            ->where('class_room_id', $this->class_room_id)
+            ->where('academic_year_id', $this->academic_year_id)
+            ->where('period_id', $this->period_id)
+            ->groupBy('student_id')
+            ->orderByDesc('avg_score')
+            ->pluck('student_id')
+            ->toArray();
+
+        return array_search($this->student_id, $students) + 1;
+    }
+
+    // ===== RANK OVERALL (ALL CLASSES) =====
+    public function getRankAllAttribute(): int
+    {
+        $students = self::selectRaw('student_id, AVG(score) as avg_score')
+            ->where('academic_year_id', $this->academic_year_id)
+            ->where('period_id', $this->period_id)
+            ->groupBy('student_id')
+            ->orderByDesc('avg_score')
+            ->pluck('student_id')
+            ->toArray();
+
+        return array_search($this->student_id, $students) + 1;
     }
 }
