@@ -8,6 +8,7 @@ use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ScheduleController;
 use App\Http\Controllers\AttendancePrintController;
+use App\Filament\Resources\GradeResource\Pages\ExportRapor;
 
 Route::get('/', function () {
     return view('pages.home.hero');
@@ -33,6 +34,9 @@ Route::get('/news/tag/{slug}', [App\Http\Controllers\NewsController::class, 'tag
 // print
 Route::get('/attendance/print/blank', [AttendancePrintController::class, 'printBlank'])
     ->name('attendance.print.blank');
+
+Route::get('/admin/grades/export-rapor/{student}', ExportRapor::class)
+    ->name('grades.export-rapor');
 
 
 

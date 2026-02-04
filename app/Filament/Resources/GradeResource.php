@@ -20,9 +20,9 @@ use Filament\Forms\Components\Section;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Actions\Action;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use AlperenErsoy\FilamentExport\Actions\FilamentExportHeaderAction;
 
 class GradeResource extends Resource
 {
@@ -62,6 +62,26 @@ class GradeResource extends Resource
         return $query;
     }
 
+    public static function getRemarksByScore($score): string
+    {
+        if ($score === null || $score === '') {
+            return 'Não Avaliado';
+        }
+
+        $score = (float) $score;
+
+        return match (true) {
+            $score >= 9.5 => 'Excelente',
+            $score >= 8.5 => 'Muito Bom',
+            $score >= 7.0 => 'Bom',
+            $score >= 6.0 => 'Suficiente',
+            $score >= 5.0 => 'Insuficiente',
+            $score >= 3.0 => 'Mau',
+            $score >= 1.0 => 'Muito Mau',
+            default       => 'Não Avaliado',
+        };
+    }
+
     public static function form(Form $form): Form
     {
         $activeYearId = AcademicYear::where('is_active', true)->value('id');
@@ -74,8 +94,7 @@ class GradeResource extends Resource
         $formFields = [];
 
         if ($isTeacher) {
-            // Guru
-            $formFields[] = TextInput::make('teacher_id_display')
+            $formFields[] = Forms\Components\TextInput::make('teacher_id_display')
                 ->label('Professor')
                 ->default(fn () => Auth::user()?->teacher?->name)
                 ->disabled()
@@ -146,10 +165,9 @@ class GradeResource extends Resource
                 ->default(fn() => Auth::user()->teacher->id)
                 ->dehydrated();
         } else {
-            // Admin
             $formFields[] = Select::make('class_room_id')
                 ->label('Klasse / Turma')
-                ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])->toArray())
+                ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"]))
                 ->reactive()
                 ->required()
                 ->afterStateUpdated(function ($state, Forms\Set $set) {
@@ -209,7 +227,7 @@ class GradeResource extends Resource
                                 ->maxValue(10)
                                 ->step(0.1)
                                 ->reactive()
-                                ->afterStateUpdated(fn($state, Forms\Set $set)=>$set('remarks', Grade::getRemarksByScore($state))),
+                                ->afterStateUpdated(fn($state, Forms\Set $set)=>$set('remarks', self::getRemarksByScore($state))),
                             TextInput::make('remarks')->label('Observasaun')->disabled()->dehydrated(false),
                             Hidden::make('id')->required(),
                         ]),
@@ -230,7 +248,7 @@ class GradeResource extends Resource
         $isStudent = $user?->hasRole('estudante') ?? false;
         $isTeacher = $user?->hasRole('mestre') ?? false;
 
-        $tableInstance = $table
+        return $table
             ->columns([
                 Tables\Columns\TextColumn::make('student.nre')->label('NRE')->searchable(!$isStudent),
                 Tables\Columns\TextColumn::make('student.name')->label('Naran Estudante')->searchable(!$isStudent),
@@ -248,45 +266,32 @@ class GradeResource extends Resource
                         default => 'gray'
                     }),
                 Tables\Columns\TextColumn::make('remarks')->label('Observasaun')->badge(),
-                Tables\Columns\TextColumn::make('average_score')->label('Rata-rata')->sortable(),
-                Tables\Columns\TextColumn::make('rank_class')->label('Rank Kelas')->sortable(),
-                Tables\Columns\TextColumn::make('rank_all')->label('Rank Seluruh')->sortable(),
                 Tables\Columns\TextColumn::make('academicYear.name')->label('Tinan Akademiku'),
                 Tables\Columns\TextColumn::make('period.name')->label('Periodu'),
+                Tables\Columns\TextColumn::make('created_at')->date('d M Y')->label('Data Kriasaun'),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('class_room_id')
+                    ->label('Klasse / Turma')
+                    ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])),
+                Tables\Filters\SelectFilter::make('subject_id')
+                    ->label('Disiplina')
+                    ->options(Subject::orderBy('name')->pluck('name','id')),
+                Tables\Filters\SelectFilter::make('teacher_id')
+                    ->label('Professor')
+                    ->options(Teacher::orderBy('name')->pluck('name','id')),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
-            ])
-            ->headerActions($isStudent ? [] : [
-                FilamentExportHeaderAction::make('export_rapor')
-                    ->label('Exporta Rapor')
-                    ->fileName('Rapor_' . now()->format('Y-m-d'))
-                    ->color('success'),
-            ])
-            ->defaultSort('created_at','desc');
+                Action::make('export_rapor')
+                    ->label('Export Rapor')
+                    ->icon('heroicon-o-rectangle-stack')
+                    ->url(fn($record) => route('grades.export-rapor', ['student' => $record->student_id]))
+                    ->openUrlInNewTab(),
 
-        if (!$isStudent) {
-            $tableInstance->filters([
-                Tables\Filters\SelectFilter::make('class_room_id')
-                    ->label('Klasse / Turma')
-                    ->options(ClassRoom::with('major')->get()->mapWithKeys(fn($c)=>[$c->id => "{$c->level} {$c->turma} ({$c->major->name})"])->toArray())
-                    ->searchable()
-                    ->preload(),
-                Tables\Filters\SelectFilter::make('subject_id')
-                    ->label('Disiplina')
-                    ->options(Subject::orderBy('name')->pluck('name','id')->toArray())
-                    ->searchable()
-                    ->preload(),
-                Tables\Filters\SelectFilter::make('teacher_id')
-                    ->label('Professor')
-                    ->options(Teacher::orderBy('name')->pluck('name','id')->toArray())
-                    ->searchable()
-                    ->preload(),
-            ])->filtersLayout(Tables\Enums\FiltersLayout::AboveContent);
-        }
-
-        return $tableInstance;
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getPages(): array
